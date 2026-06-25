@@ -1,5 +1,4 @@
 import { AnimatePresence, cubicBezier, motion } from 'framer-motion';
-import { hapticLight } from '~/lib/haptics';
 
 interface SendButtonProps {
   show: boolean;
@@ -26,7 +25,6 @@ export const SendButton = ({ show, isStreaming, disabled, onClick }: SendButtonP
             event.preventDefault();
 
             if (!disabled) {
-              hapticLight();
               onClick?.(event);
             }
           }}
