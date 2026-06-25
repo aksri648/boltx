@@ -1,0 +1,84 @@
+name: Build Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build web assets
+        working-directory: frontend
+        run: npm run build
+
+      - name: Generate Android icons and splash
+        working-directory: frontend
+        run: npx capacitor-assets generate --android
+
+      - name: Sync Capacitor Android
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('frontend/android/**/*.gradle*', 'frontend/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build debug APK
+        working-directory: frontend/android
+        run: ./gradlew assembleDebug
+
+      - name: Rename APK
+        run: cp frontend/android/app/build/outputs/apk/debug/app-debug.apk bolt-diy.apk
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "bolt.diy Android v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## bolt.diy Android App v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            1. Download the `bolt-diy.apk` file below
+            2. On your Android device, open **Settings → Security → Unknown sources** and enable it
+            3. Open the downloaded APK file to install
+          files: bolt-diy.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

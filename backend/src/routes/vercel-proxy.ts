@@ -96,4 +96,37 @@ router.post('/deployments', async (req: Request, res: Response) => {
   }
 });
 
+// Proxy Vercel project details
+router.post('/project-details', async (req: Request, res: Response) => {
+  try {
+    const { token, projectId } = req.body;
+    if (!token) {
+      res.status(400).json({ error: 'No token provided' });
+      return;
+    }
+    if (!projectId) {
+      res.status(400).json({ error: 'No projectId provided' });
+      return;
+    }
+
+    const response = await fetch(`https://api.vercel.com/v9/projects/${projectId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      res.status(response.status).json({ error: `Vercel API error: ${response.status}` });
+      return;
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error: any) {
+    logger.error('Vercel project details proxy error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

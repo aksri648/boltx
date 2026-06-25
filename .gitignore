@@ -9,3 +9,12 @@ build/
 *.tsbuildinfo
 coverage/
 .turbo/
+
+# Capacitor Android build artifacts
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/capacitor-cordova-android-plugins/build/
+frontend/android/app/src/main/assets/public/
+mobile-frontend/android/app/build/
+mobile-frontend/android/.gradle/
+mobile-frontend/android/app/src/main/assets/public/

@@ -2,13 +2,13 @@ import { useStore } from '@nanostores/react';
 import type { Message } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useAnimate } from 'framer-motion';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts } from '~/lib/hooks';
 import { description, useChatHistory } from '~/lib/persistence';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
-import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST } from '~/utils/constants';
+import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST, WORK_DIR } from '~/utils/constants';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { BaseChat } from './BaseChat';
@@ -28,6 +28,9 @@ import type { ElementInfo } from '~/components/workbench/Inspector';
 import type { TextUIPart, FileUIPart, Attachment } from '@ai-sdk/ui-utils';
 import { useMCPStore } from '~/lib/stores/mcp';
 import type { LlmErrorAlertType } from '~/types/actions';
+import { PromptLibrary } from '~/lib/common/prompt-library';
+import { allowedHTMLElements } from '~/utils/markdown';
+import { discussPrompt } from '~/lib/common/prompts/discuss-prompt';
 
 const logger = createScopedLogger('Chat');
 
@@ -117,6 +120,37 @@ export const ChatImpl = memo(
     const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
     const mcpSettings = useMCPStore((state) => state.settings);
 
+    // Resolve the system prompt based on chat mode and selected prompt template
+    const resolvedSystemPrompt = useMemo(() => {
+      if (chatMode === 'discuss') {
+        return discussPrompt();
+      }
+
+      const promptOptions = {
+        cwd: WORK_DIR,
+        allowedHtmlElements: [...allowedHTMLElements],
+        modificationTagName: 'boltAction',
+        designScheme,
+        supabase: {
+          isConnected: supabaseConn.isConnected || false,
+          hasSelectedProject: !!selectedProject,
+          credentials: supabaseConn.credentials
+            ? {
+                anonKey: supabaseConn.credentials.anonKey,
+                supabaseUrl: supabaseConn.credentials.supabaseUrl,
+              }
+            : undefined,
+        },
+      };
+
+      try {
+        return PromptLibrary.getPropmtFromLibrary(promptId, promptOptions);
+      } catch {
+        // Fallback to default prompt if promptId is invalid
+        return PromptLibrary.getPropmtFromLibrary('default', promptOptions);
+      }
+    }, [chatMode, promptId, designScheme, supabaseConn.isConnected, supabaseConn.selectedProjectId, supabaseConn.credentials]);
+
     const {
       messages,
       isLoading,
@@ -137,9 +171,9 @@ export const ChatImpl = memo(
         apiKeys,
         files,
         promptId,
-        contextOptimization: contextOptimizationEnabled,
         chatMode,
         designScheme,
+        contextOptimization: contextOptimizationEnabled,
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,
@@ -149,6 +183,7 @@ export const ChatImpl = memo(
           },
         },
         maxLLMSteps: mcpSettings.maxLLMSteps,
+        systemPrompt: resolvedSystemPrompt,
       },
       sendExtraMessageFields: true,
       onError: (e) => {

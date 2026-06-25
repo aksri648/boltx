@@ -411,13 +411,9 @@ ${value.content}
 }
 
 function navigateChat(nextId: string) {
-  /**
-   * FIXME: Using the intended navigate function causes a rerender for <Chat /> that breaks the app.
-   *
-   * `navigate(`/chat/${nextId}`, { replace: true });`
-   */
+  // Use history.replaceState to avoid re-rendering the Chat component
+  // (navigate() would trigger a full re-render that breaks streaming)
   const url = new URL(window.location.href);
   url.pathname = `/chat/${nextId}`;
-
   window.history.replaceState({}, '', url);
 }

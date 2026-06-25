@@ -811,21 +811,22 @@ class DebugLogger {
     // Try to get workbench information
     try {
       if (typeof window !== 'undefined') {
-        // Access stores if available
-        const workbenchStore = (window as any).__bolt_workbench_store;
-
-        if (workbenchStore) {
-          const state = workbenchStore.get?.() || {};
+        // Access workbench store via dynamic import (avoid circular deps)
+        import('~/lib/stores/workbench').then(({ workbenchStore: wbStore }) => {
+          const files = wbStore.files.get();
+          const artifacts = wbStore.artifacts.get();
           workbenchInfo = {
-            currentView: state.currentView || 'code',
-            showWorkbench: state.showWorkbench || false,
-            showTerminal: state.showTerminal !== undefined ? state.showTerminal : true,
-            artifactsCount: Object.keys(state.artifacts || {}).length,
-            filesCount: Object.keys(state.files || {}).length,
-            unsavedFiles: state.unsavedFiles?.size || 0,
-            hasActivePreview: (state.previews || []).length > 0,
+            currentView: 'code',
+            showWorkbench: wbStore.showWorkbench?.get() || false,
+            showTerminal: wbStore.showTerminal?.get() !== undefined ? wbStore.showTerminal.get() : true,
+            artifactsCount: Object.keys(artifacts || {}).length,
+            filesCount: Object.keys(files || {}).length,
+            unsavedFiles: wbStore.unsavedFiles?.get()?.size || 0,
+            hasActivePreview: (wbStore.previews?.get() || []).length > 0,
           };
-        }
+        }).catch(() => {
+          // Ignore import errors
+        });
       }
     } catch {
       // Ignore errors when accessing stores
@@ -1018,18 +1019,19 @@ class DebugLogger {
 
     try {
       if (typeof window !== 'undefined') {
-        const workbenchStore = (window as any).__bolt_workbench_store;
-
-        if (workbenchStore) {
-          const state = workbenchStore.get?.() || {};
+        import('~/lib/stores/workbench').then(({ workbenchStore: wbStore }) => {
+          const files = wbStore.files.get();
+          const artifacts = wbStore.artifacts.get();
           workbenchState = {
-            currentView: state.currentView || 'code',
-            showWorkbench: state.showWorkbench || false,
-            showTerminal: state.showTerminal !== undefined ? state.showTerminal : true,
-            artifactsCount: Object.keys(state.artifacts || {}).length,
-            filesCount: Object.keys(state.files || {}).length,
+            currentView: 'code',
+            showWorkbench: wbStore.showWorkbench?.get() || false,
+            showTerminal: wbStore.showTerminal?.get() !== undefined ? wbStore.showTerminal.get() : true,
+            artifactsCount: Object.keys(artifacts || {}).length,
+            filesCount: Object.keys(files || {}).length,
           };
-        }
+        }).catch(() => {
+          // Ignore import errors
+        });
       }
     } catch {
       // Ignore errors

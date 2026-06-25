@@ -169,14 +169,16 @@ export function useNetlifyDeploy() {
 
       while (attempts < maxAttempts) {
         try {
-          const statusResponse = await fetch(
-            `https://api.netlify.com/api/v1/sites/${data.site.id}/deploys/${data.deploy.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${netlifyConn.token}`,
-              },
+          // Use the existing Netlify proxy endpoint for deploy status
+          const statusResponse = await fetch(`/api/netlify-proxy/sites/${data.site.id}/deploys/${data.deploy.id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
             },
-          );
+            body: JSON.stringify({
+              token: netlifyConn.token,
+            }),
+          });
 
           deploymentStatus = (await statusResponse.json()) as any;
 

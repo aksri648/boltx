@@ -10,6 +10,7 @@ import { themeStore } from '~/lib/stores/theme';
 import { useStore } from '@nanostores/react';
 import { useEffect } from 'react';
 import { cssTransition } from 'react-toastify';
+import { initCapacitor } from '~/lib/capacitor';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -22,6 +23,10 @@ export default function App() {
   useEffect(() => {
     document.querySelector('html')?.setAttribute('data-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    initCapacitor();
+  }, []);
 
   return (
     <DndProvider backend={HTML5Backend}>

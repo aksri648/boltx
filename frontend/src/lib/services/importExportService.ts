@@ -4,7 +4,7 @@ import { getAllChats, deleteChat } from '~/lib/persistence/chats';
 
 interface ExtendedMessage extends Message {
   name?: string;
-  function_call?: any;
+  toolCalls?: Array<{ name: string; arguments: Record<string, unknown> }>;
   timestamp?: number;
 }
 
@@ -35,7 +35,7 @@ export class ImportExportService {
           role: msg.role,
           content: msg.content,
           name: msg.name,
-          function_call: msg.function_call,
+          toolCalls: msg.toolCalls,
           timestamp: msg.timestamp,
         })),
         timestamp: chat.timestamp,

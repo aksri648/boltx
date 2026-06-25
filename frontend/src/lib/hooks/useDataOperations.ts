@@ -608,7 +608,6 @@ export function useDataOperations({
               role: msg.role,
               content: msg.content,
               name: msg.name,
-              function_call: msg.function_call,
               timestamp: msg.timestamp || Date.now(),
             };
           });

@@ -26,13 +26,13 @@ export function VercelDeploymentLink() {
       setIsLoading(true);
 
       try {
-        // Fetch projects directly from the API
-        const projectsResponse = await fetch('https://api.vercel.com/v9/projects', {
+        // Fetch projects through the backend proxy (token stays server-side)
+        const projectsResponse = await fetch('/api/vercel-proxy/projects', {
+          method: 'POST',
           headers: {
-            Authorization: `Bearer ${connection.token}`,
             'Content-Type': 'application/json',
           },
-          cache: 'no-store',
+          body: JSON.stringify({ token: connection.token }),
         });
 
         if (!projectsResponse.ok) {
@@ -49,13 +49,13 @@ export function VercelDeploymentLink() {
         const project = projects.find((p: { name: string | string[] }) => p.name.includes(`bolt-diy-${chatNumber}`));
 
         if (project) {
-          // Fetch project details including deployments
-          const projectDetailsResponse = await fetch(`https://api.vercel.com/v9/projects/${project.id}`, {
+          // Fetch project details through the backend proxy
+          const projectDetailsResponse = await fetch('/api/vercel-proxy/project-details', {
+            method: 'POST',
             headers: {
-              Authorization: `Bearer ${connection.token}`,
               'Content-Type': 'application/json',
             },
-            cache: 'no-store',
+            body: JSON.stringify({ token: connection.token, projectId: project.id }),
           });
 
           if (projectDetailsResponse.ok) {
@@ -79,17 +79,14 @@ export function VercelDeploymentLink() {
             }
           }
 
-          // If no aliases or project details failed, try fetching deployments
-          const deploymentsResponse = await fetch(
-            `https://api.vercel.com/v6/deployments?projectId=${project.id}&limit=1`,
-            {
-              headers: {
-                Authorization: `Bearer ${connection.token}`,
-                'Content-Type': 'application/json',
-              },
-              cache: 'no-store',
+          // If no aliases or project details failed, try fetching deployments through proxy
+          const deploymentsResponse = await fetch('/api/vercel-proxy/deployments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
             },
-          );
+            body: JSON.stringify({ token: connection.token, projectId: project.id, limit: 1 }),
+          });
 
           if (deploymentsResponse.ok) {
             const deploymentsData = (await deploymentsResponse.json()) as any;

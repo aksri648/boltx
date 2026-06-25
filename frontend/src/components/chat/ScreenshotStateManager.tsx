@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { setScreenshotSetters, clearScreenshotSetters } from '~/lib/stores/screenshot';
 
 interface ScreenshotStateManagerProps {
   setUploadedFiles?: (files: File[]) => void;
@@ -15,17 +16,11 @@ export const ScreenshotStateManager = ({
 }: ScreenshotStateManagerProps) => {
   useEffect(() => {
     if (setUploadedFiles && setImageDataList) {
-      (window as any).__BOLT_SET_UPLOADED_FILES__ = setUploadedFiles;
-      (window as any).__BOLT_SET_IMAGE_DATA_LIST__ = setImageDataList;
-      (window as any).__BOLT_UPLOADED_FILES__ = uploadedFiles;
-      (window as any).__BOLT_IMAGE_DATA_LIST__ = imageDataList;
+      setScreenshotSetters(setUploadedFiles, setImageDataList, uploadedFiles, imageDataList);
     }
 
     return () => {
-      delete (window as any).__BOLT_SET_UPLOADED_FILES__;
-      delete (window as any).__BOLT_SET_IMAGE_DATA_LIST__;
-      delete (window as any).__BOLT_UPLOADED_FILES__;
-      delete (window as any).__BOLT_IMAGE_DATA_LIST__;
+      clearScreenshotSetters();
     };
   }, [setUploadedFiles, setImageDataList, uploadedFiles, imageDataList]);
 

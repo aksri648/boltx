@@ -1,0 +1,80 @@
+name: Build Mobile Android APK
+
+on:
+  push:
+    tags:
+      - 'mobile-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile-frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install mobile frontend dependencies
+        working-directory: mobile-frontend
+        run: npm ci
+
+      - name: Build web assets
+        working-directory: mobile-frontend
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        working-directory: mobile-frontend
+        run: npx cap sync android
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-mobile-${{ runner.os }}-${{ hashFiles('mobile-frontend/android/**/*.gradle*', 'mobile-frontend/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-mobile-${{ runner.os }}-
+
+      - name: Build debug APK
+        working-directory: mobile-frontend/android
+        run: ./gradlew assembleDebug
+
+      - name: Rename APK
+        run: cp mobile-frontend/android/app/build/outputs/apk/debug/app-debug.apk bolt-diy-mobile.apk
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/mobile-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "bolt.diy Mobile v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## bolt.diy Mobile Android App v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            1. Download the `bolt.diy-mobile.apk` file below
+            2. On your Android device, open **Settings → Security → Unknown sources** and enable it
+            3. Open the downloaded APK file to install
+          files: bolt-diy-mobile.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
