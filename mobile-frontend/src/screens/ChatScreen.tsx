@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useChatStore, type ChatMessage } from '../lib/stores';
 import { useSettingsStore } from '../lib/stores';
 import { sendChatMessage, enhancePrompt, fetchConfiguredProviders, fetchModels } from '../lib/api';
+import { getSystemPrompt } from '../lib/system-prompt';
 import { generateId, formatTime } from '../lib/utils';
 
 export function ChatScreen() {
@@ -72,6 +73,7 @@ export function ChatScreen() {
     try {
       const res = await sendChatMessage({
         message: userMsg.content,
+        system: getSystemPrompt(),
         provider,
         model,
         apiKeys,
