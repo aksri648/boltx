@@ -1,4 +1,11 @@
 import { create } from 'zustand';
+import {
+  listChats,
+  getChat,
+  saveChat,
+  deleteChatStorage,
+} from './api';
+import { getSystemPrompt } from './system-prompt';
 
 // --- Settings Store ---
 interface SettingsState {
@@ -31,7 +38,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }),
 }));
 
-// --- Chat Store ---
+// --- Chat Store (MongoDB-backed) ---
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -44,34 +51,24 @@ interface ChatState {
   messages: ChatMessage[];
   isLoading: boolean;
   currentChatId: string | null;
-  chatHistory: Array<{ id: string; title: string; timestamp: number; messages: ChatMessage[] }>;
+  chatHistory: Array<{ id: string; title: string; timestamp: number; messages: ChatMessage[]; lastMessage?: { role: string; content: string } | null }>;
   addMessage: (msg: ChatMessage) => void;
   updateMessage: (id: string, content: string) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
+  setCurrentChatId: (id: string) => void;
   saveCurrentChat: () => void;
   loadChat: (id: string) => void;
   deleteChat: (id: string) => void;
   startNewChat: () => void;
-}
-
-function loadHistory(): ChatState['chatHistory'] {
-  try {
-    return JSON.parse(localStorage.getItem('bolt-mobile-chats') || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(history: ChatState['chatHistory']) {
-  localStorage.setItem('bolt-mobile-chats', JSON.stringify(history.slice(0, 50)));
+  loadHistory: () => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isLoading: false,
   currentChatId: null,
-  chatHistory: loadHistory(),
+  chatHistory: [],
 
   addMessage: (msg) =>
     set((state) => ({ messages: [...state.messages, msg] })),
@@ -85,33 +82,96 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   clearMessages: () => set({ messages: [] }),
 
-  saveCurrentChat: () => {
-    const { messages, currentChatId, chatHistory } = get();
-    if (messages.length === 0) return;
+  setCurrentChatId: (id) => set({ currentChatId: id }),
 
-    const id = currentChatId || Date.now().toString();
-    const title = messages[0]?.content.slice(0, 50) || 'New Chat';
-    const chat = { id, title, timestamp: Date.now(), messages };
-
-    const existing = chatHistory.filter((c) => c.id !== id);
-    const updated = [chat, ...existing];
-    saveHistory(updated);
-    set({ chatHistory: updated, currentChatId: id });
-  },
-
-  loadChat: (id) => {
-    const { chatHistory } = get();
-    const chat = chatHistory.find((c) => c.id === id);
-    if (chat) {
-      set({ messages: chat.messages, currentChatId: id });
+  loadHistory: async () => {
+    try {
+      const chats = await listChats();
+      const history = Array.isArray(chats)
+        ? chats.map((c: any) => ({
+            id: c.chatId,
+            title: c.title || 'Untitled',
+            timestamp: new Date(c.updatedAt).getTime(),
+            messages: [], // full messages loaded on demand via loadChat
+            lastMessage: c.lastMessage || null,
+          }))
+        : [];
+      set({ chatHistory: history });
+    } catch (err) {
+      console.error('Failed to load chat history from backend:', err);
+      set({ chatHistory: [] });
     }
   },
 
-  deleteChat: (id) => {
-    const { chatHistory } = get();
-    const updated = chatHistory.filter((c) => c.id !== id);
-    saveHistory(updated);
-    set({ chatHistory: updated });
+  saveCurrentChat: async () => {
+    const { messages, currentChatId } = get();
+    if (messages.length === 0) return;
+
+    const chatId = currentChatId || `chat-${Date.now()}`;
+    const title = messages[0]?.content.slice(0, 50) || 'New Chat';
+
+    const payload = {
+      chatId,
+      title,
+      messages: messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: m.timestamp,
+      })),
+      // Only send systemPrompt when creating a new chat
+      ...(!currentChatId && { systemPrompt: getSystemPrompt() }),
+    };
+
+    try {
+      await saveChat(payload);
+      set({ currentChatId: chatId });
+
+      // Refresh chat history
+      const chats = await listChats();
+      const history = Array.isArray(chats)
+        ? chats.map((c: any) => ({
+            id: c.chatId,
+            title: c.title || 'Untitled',
+            timestamp: new Date(c.updatedAt).getTime(),
+            messages: [],
+            lastMessage: c.lastMessage || null,
+          }))
+        : [];
+      set({ chatHistory: history });
+    } catch (err) {
+      console.error('Failed to save chat to backend:', err);
+    }
+  },
+
+  loadChat: async (id: string) => {
+    try {
+      const chat = await getChat(id);
+      if (chat && chat.messages) {
+        set({
+          messages: chat.messages.map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp || Date.now(),
+          })),
+          currentChatId: id,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load chat from backend:', err);
+    }
+  },
+
+  deleteChat: async (id: string) => {
+    try {
+      await deleteChatStorage(id);
+      set((state) => ({
+        chatHistory: state.chatHistory.filter((c) => c.id !== id),
+      }));
+    } catch (err) {
+      console.error('Failed to delete chat from backend:', err);
+    }
   },
 
   startNewChat: () => set({ messages: [], currentChatId: null }),

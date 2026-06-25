@@ -31,6 +31,8 @@ import featuresRoutes from './routes/features';
 import vercelProxyRoutes from './routes/vercel-proxy';
 import netlifyProxyRoutes from './routes/netlify-proxy';
 import { SandboxManager } from './lib/sandbox/sandbox-manager';
+import { connectMongoDB, disconnectMongoDB } from './lib/db/mongodb';
+import chatStorageRoutes from './routes/chats';
 
 const logger = createScopedLogger('Server');
 
@@ -49,6 +51,9 @@ export async function createServer() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Persistence routes — must be mounted before /api/chat to avoid prefix collision
+  app.use('/api/chat-storage', chatStorageRoutes);
+  // AI chat streaming routes
   app.use('/api/chat', chatRoutes);
   app.use('/api/llmcall', llmCallRoutes);
   app.use('/api/models', modelsRoutes);
@@ -84,7 +89,9 @@ export async function createServer() {
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  createServer().then(({ app, PORT }) => {
+  createServer().then(async ({ app, PORT }) => {
+    await connectMongoDB();
+
     const server = http.createServer(app);
 
     const wss = new WebSocketServer({ server, path: '/api/sandbox' });
@@ -99,5 +106,13 @@ if (process.env.NODE_ENV !== 'test') {
 process.on('SIGTERM', async () => {
   console.log('Cleaning up sandboxes...');
   await SandboxManager.getInstance().cleanup();
+  await disconnectMongoDB();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('Cleaning up sandboxes...');
+  await SandboxManager.getInstance().cleanup();
+  await disconnectMongoDB();
   process.exit(0);
 });

@@ -2,23 +2,40 @@ import { Router, type Request, type Response } from 'express';
 import { streamText } from '~/lib/.server/llm/stream-text';
 import { LLMManager } from '~/lib/modules/llm/manager';
 import { createScopedLogger } from '~/utils/logger';
+import { Chat } from '~/lib/models/Chat';
+import { isMongoDBConnected } from '~/lib/db/mongodb';
 
 const logger = createScopedLogger('LLMCallRoute');
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { messages, message, system, provider, model, apiKeys, providerSettings } = req.body;
+    const { messages, message, system, chatId, provider, model, apiKeys, providerSettings } = req.body;
     const serverEnv = process.env as Record<string, string>;
+
+    // Resolve system prompt: prefer stored prompt from MongoDB, fallback to client-provided
+    let systemPrompt = system;
+    if (chatId && isMongoDBConnected() && !systemPrompt) {
+      try {
+        const chat = await Chat.findOne({ chatId }).lean();
+        if (chat?.systemPrompt) {
+          systemPrompt = chat.systemPrompt;
+        }
+      } catch (err) {
+        logger.warn('Failed to load system prompt from MongoDB:', err);
+      }
+    }
 
     // Accept both `messages` (array) and `message` (single string) + `system` prompt
     let llmMessages;
     if (messages && Array.isArray(messages)) {
-      llmMessages = messages;
-    } else if (message) {
-      // Build messages array from single message + optional system prompt
       llmMessages = [
-        ...(system ? [{ role: 'system' as const, content: system }] : []),
+        ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
+        ...messages,
+      ];
+    } else if (message) {
+      llmMessages = [
+        ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
         { role: 'user' as const, content: String(message) },
       ];
     } else {

@@ -27,7 +27,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
 // --- Chat / LLM ---
 export async function sendChatMessage(params: {
   message: string;
-  system?: string;
+  chatId?: string;
   provider?: string;
   model?: string;
   apiKeys?: Record<string, string>;
@@ -36,7 +36,7 @@ export async function sendChatMessage(params: {
     method: 'POST',
     body: JSON.stringify({
       message: params.message,
-      system: params.system,
+      chatId: params.chatId,
       provider: params.provider || 'Anthropic',
       model: params.model || 'claude-3-5-sonnet-latest',
       apiKeys: params.apiKeys || {},
@@ -141,6 +141,47 @@ export async function deployNetlify(params: {
   const res = await apiFetch('/netlify-deploy', {
     method: 'POST',
     body: JSON.stringify(params),
+  });
+  return res.json();
+}
+
+// --- Chat Storage (MongoDB persistence) ---
+export async function listChats() {
+  const res = await apiFetch('/chat-storage');
+  return res.json();
+}
+
+export async function getChat(chatId: string) {
+  const res = await apiFetch(`/chat-storage/${encodeURIComponent(chatId)}`);
+  if (res.status === 404) return null;
+  return res.json();
+}
+
+export async function saveChat(chat: {
+  chatId: string;
+  title: string;
+  messages: Array<{ id: string; role: string; content: string; timestamp?: number }>;
+  systemPrompt?: string;
+  metadata?: Record<string, any>;
+}) {
+  const res = await apiFetch(`/chat-storage/${encodeURIComponent(chat.chatId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(chat),
+  });
+  return res.json();
+}
+
+export async function deleteChatStorage(chatId: string) {
+  const res = await apiFetch(`/chat-storage/${encodeURIComponent(chatId)}`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+export async function appendMessages(chatId: string, messages: Array<{ id: string; role: string; content: string; timestamp?: number }>) {
+  const res = await apiFetch(`/chat-storage/${encodeURIComponent(chatId)}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({ messages }),
   });
   return res.json();
 }

@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore, type ChatMessage } from '../lib/stores';
 import { useSettingsStore } from '../lib/stores';
-import { sendChatMessage, enhancePrompt, fetchConfiguredProviders, fetchModels } from '../lib/api';
-import { getSystemPrompt } from '../lib/system-prompt';
+import { sendChatMessage, enhancePrompt, fetchConfiguredProviders, fetchModels, saveChat } from '../lib/api';
 import { generateId, formatTime } from '../lib/utils';
+import { getSystemPrompt } from '../lib/system-prompt';
 
 export function ChatScreen() {
-  const { messages, isLoading, addMessage, updateMessage, setLoading, saveCurrentChat, startNewChat, chatHistory, loadChat, deleteChat } = useChatStore();
+  const { messages, isLoading, currentChatId, addMessage, updateMessage, setLoading, setCurrentChatId, saveCurrentChat, startNewChat, chatHistory, loadChat, deleteChat } = useChatStore();
   const { provider, model, apiKeys, setProvider, setModel } = useSettingsStore();
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -71,9 +71,24 @@ export function ChatScreen() {
     }
 
     try {
+      // For a new chat, create the MongoDB entry first so the system prompt is stored
+      // before the backend processes the first message
+      let activeChatId = currentChatId;
+      if (!activeChatId) {
+        activeChatId = `chat-${Date.now()}`;
+        await saveChat({
+          chatId: activeChatId,
+          title: userMsg.content.slice(0, 50),
+          messages: [],
+          systemPrompt: getSystemPrompt(),
+        });
+        // Update store so saveCurrentChat doesn't create a duplicate
+        setCurrentChatId(activeChatId);
+      }
+
       const res = await sendChatMessage({
         message: userMsg.content,
-        system: getSystemPrompt(),
+        chatId: activeChatId,
         provider,
         model,
         apiKeys,

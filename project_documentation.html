@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bolt.diy — Project Documentation</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root[data-theme="dark"] {
+      --background: #0d0d1a;
+      --foreground: #e8e8f0;
+      --card: #151528;
+      --card-foreground: #e8e8f0;
+      --popover: #151528;
+      --popover-foreground: #e8e8f0;
+      --primary: #8a5fff;
+      --primary-foreground: #ffffff;
+      --secondary: #1c1c3a;
+      --secondary-foreground: #e8e8f0;
+      --muted: #1c1c3a;
+      --muted-foreground: #8888aa;
+      --accent: #8a5fff;
+      --accent-foreground: #ffffff;
+      --destructive: #ef4444;
+      --destructive-foreground: #ffffff;
+      --border: #2a2a4a;
+      --input: #2a2a4a;
+      --ring: #8a5fff;
+      --radius: 0.75rem;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, pre {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .mermaid {
+      background: #1a1a2e;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      overflow: auto;
+      margin: 1.5rem 0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .badge-success { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge-primary { background: rgba(138, 95, 255, 0.15); color: #8a5fff; }
+    .badge-destructive { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .badge-info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: var(--muted);
+      color: var(--muted-foreground);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+    tr:hover td { background: rgba(138, 95, 255, 0.03); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: rgba(138, 95, 255, 0.3); }
+    .card-header { margin-bottom: 1rem; }
+    .card-title { font-size: 1.125rem; font-weight: 600; }
+    .card-description { font-size: 0.875rem; color: var(--muted-foreground); margin-top: 0.25rem; }
+    pre {
+      background: #1a1a2e;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 0.25rem);
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+    code { font-size: 0.8125rem; }
+    .toc { position: sticky; top: 2rem; }
+    .toc a {
+      display: block;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      color: var(--muted-foreground);
+      font-size: 0.8125rem;
+      transition: all 0.15s;
+    }
+    .toc a:hover {
+      color: var(--foreground);
+      background: var(--muted);
+      text-decoration: none;
+    }
+    .toc .toc-h2 { padding-left: 1.25rem; }
+    .toc .toc-h3 { padding-left: 2rem; font-size: 0.75rem; }
+    .hero {
+      text-align: center;
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #8a5fff 0%, #b69eff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p { font-size: 1.125rem; color: var(--muted-foreground); margin-top: 0.75rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .section { margin-bottom: 3rem; }
+    .section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      display: inline-block;
+    }
+    .section h3 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+    .section h4 { font-size: 1rem; font-weight: 600; margin: 1rem 0 0.5rem; color: var(--primary); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+    .stat { text-align: center; padding: 1.5rem; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 0.8125rem; color: var(--muted-foreground); margin-top: 0.25rem; }
+    .file-path {
+      display: inline-block;
+      background: var(--muted);
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+    .info-callout {
+      background: rgba(138, 95, 255, 0.08);
+      border-left: 3px solid var(--primary);
+      padding: 1rem 1.25rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1rem 0;
+      font-size: 0.875rem;
+    }
+    .success-callout {
+      background: rgba(34, 197, 94, 0.08);
+      border-left: 3px solid var(--success);
+      padding: 1rem 1.25rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1rem 0;
+      font-size: 0.875rem;
+    }
+    .warn-callout {
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 3px solid var(--warning);
+      padding: 1rem 1.25rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1rem 0;
+      font-size: 0.875rem;
+    }
+    .tags { display: flex; gap: 0.375rem; flex-wrap: wrap; margin: 0.5rem 0; }
+    .footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; color: var(--muted-foreground); font-size: 0.8125rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Hero -->
+    <div class="hero">
+      <h1>bolt.diy</h1>
+      <p>AI-Powered Full-Stack Web Development Platform — Complete Architecture &amp; API Documentation</p>
+      <div class="flex justify-center gap-2 mt-6" style="display:flex;justify-content:center;gap:0.5rem;flex-wrap:wrap;margin-top:1.5rem;">
+        <span class="badge badge-primary">v1.0.0</span>
+        <span class="badge badge-info">Express + TypeScript</span>
+        <span class="badge badge-success">React 18/19</span>
+        <span class="badge badge-warning">Capacitor Android</span>
+        <span class="badge badge-primary">MongoDB</span>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid-4" style="margin-bottom:3rem;">
+      <div class="card stat"><div class="stat-value">26</div><div class="stat-label">API Routes</div></div>
+      <div class="card stat"><div class="stat-value">14</div><div class="stat-label">AI Providers</div></div>
+      <div class="card stat"><div class="stat-value">5</div><div class="stat-label">Mobile Screens</div></div>
+      <div class="card stat"><div class="stat-value">13</div><div class="stat-label">Starter Templates</div></div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="grid-2" style="margin-bottom:3rem;">
+      <div>
+        <div class="card">
+          <h2 style="font-size:1.125rem;font-weight:600;margin-bottom:0.75rem;">📑 Table of Contents</h2>
+          <div class="toc">
+            <a href="#overview">1. Project Overview</a>
+            <a href="#setup" class="toc-h2">2. Setting Up &amp; Running</a>
+            <a href="#setup-prerequisites" class="toc-h3">2.1 Prerequisites</a>
+            <a href="#setup-quickstart" class="toc-h3">2.2 Quick Start</a>
+            <a href="#setup-backend" class="toc-h3">2.3 Backend Setup</a>
+            <a href="#setup-frontend" class="toc-h3">2.4 Desktop Frontend Setup</a>
+            <a href="#setup-mobile" class="toc-h3">2.5 Mobile Frontend Setup</a>
+            <a href="#setup-android" class="toc-h3">2.6 Android Build</a>
+            <a href="#setup-troubleshooting" class="toc-h3">2.7 Troubleshooting</a>
+            <a href="#system-architecture" class="toc-h2">3. System Architecture</a>
+            <a href="#backend" class="toc-h2">4. Backend Architecture</a>
+            <a href="#backend-routes" class="toc-h3">4.1 Route Reference</a>
+            <a href="#backend-db-models" class="toc-h3">4.2 Database &amp; Models</a>
+            <a href="#backend-llm" class="toc-h3">4.3 LLM Provider System</a>
+            <a href="#backend-sandbox" class="toc-h3">4.4 Sandbox System</a>
+            <a href="#backend-services" class="toc-h3">4.5 Services &amp; Integrations</a>
+            <a href="#frontend-desktop" class="toc-h2">5. Desktop Frontend</a>
+            <a href="#mobile-frontend" class="toc-h2">6. Mobile Frontend</a>
+            <a href="#mobile-screens" class="toc-h3">6.1 Screen Reference</a>
+            <a href="#mobile-stores" class="toc-h3">6.2 State Management</a>
+            <a href="#api-reference" class="toc-h2">7. Full API Reference</a>
+            <a href="#data-flow" class="toc-h2">8. Data Flow Diagrams</a>
+            <a href="#deployment" class="toc-h2">9. Deployment &amp; CI/CD</a>
+            <a href="#types" class="toc-h2">10. Type Definitions</a>
+            <a href="#env-vars" class="toc-h2">11. Environment Variables</a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h2 style="font-size:1.125rem;font-weight:600;margin-bottom:0.75rem;">🔧 Tech Stack</h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <p style="font-size:0.75rem;color:var(--muted-foreground);font-weight:600;">Backend</p>
+              <ul style="list-style:none;font-size:0.8125rem;margin-top:0.375rem;">
+                <li>✦ Express.js</li>
+                <li>✦ TypeScript</li>
+                <li>✦ MongoDB / Mongoose</li>
+                <li>✦ WebSocket (ws)</li>
+                <li>✦ AI SDK (Vercel)</li>
+                <li>✦ Daytona Sandbox</li>
+              </ul>
+            </div>
+            <div>
+              <p style="font-size:0.75rem;color:var(--muted-foreground);font-weight:600;">Frontend (Desktop)</p>
+              <ul style="list-style:none;font-size:0.8125rem;margin-top:0.375rem;">
+                <li>✦ React 18</li>
+                <li>✦ Vite + UnoCSS</li>
+                <li>✦ CodeMirror</li>
+                <li>✦ xterm.js</li>
+                <li>✦ Framer Motion</li>
+                <li>✦ Zustand + Nano Stores</li>
+              </ul>
+            </div>
+            <div>
+              <p style="font-size:0.75rem;color:var(--muted-foreground);font-weight:600;">Mobile</p>
+              <ul style="list-style:none;font-size:0.8125rem;margin-top:0.375rem;">
+                <li>✦ React 19</li>
+                <li>✦ Capacitor 8</li>
+                <li>✦ Tailwind CSS 4</li>
+                <li>✦ Zustand</li>
+                <li>✦ Vite + HMR</li>
+              </ul>
+            </div>
+            <div>
+              <p style="font-size:0.75rem;color:var(--muted-foreground);font-weight:600;">DevOps</p>
+              <ul style="list-style:none;font-size:0.8125rem;margin-top:0.375rem;">
+                <li>✦ GitHub Actions</li>
+                <li>✦ Android Build</li>
+                <li>✦ Concurrently</li>
+                <li>✦ ESLint/Oxlint</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Project Overview -->
+    <div class="section" id="overview">
+      <h2>1. Project Overview</h2>
+      <p style="margin-bottom:1rem;">bolt.diy is an <strong>AI-powered full-stack web development platform</strong> that runs entirely in the browser. It provides a conversational interface where users describe what they want to build, and the AI generates complete codebases, manages files, runs terminals, and deploys projects — all from within a sandboxed environment.</p>
+      <p style="margin-bottom:1rem;">The platform consists of three main applications:</p>
+      <div class="grid-3">
+        <div class="card">
+          <h4 style="margin:0 0 0.5rem;">🖥️ Desktop Frontend</h4>
+          <p style="font-size:0.8125rem;color:var(--muted-foreground);">Rich single-page application with code editor, terminal emulator, preview pane, Git integration, and deployment UI. Built with React 18 + UnoCSS.</p>
+        </div>
+        <div class="card">
+          <h4 style="margin:0 0 0.5rem;">📱 Mobile Frontend</h4>
+          <p style="font-size:0.8125rem;color:var(--muted-foreground);">Native Android app via Capacitor with chat, file explorer, terminal, deploy, and settings screens. Built with React 19 + Tailwind CSS.</p>
+        </div>
+        <div class="card">
+          <h4 style="margin:0 0 0.5rem;">⚙️ Backend API</h4>
+          <p style="font-size:0.8125rem;color:var(--muted-foreground);">Express.js server with 26+ REST API routes, WebSocket PTY terminals, LLM provider abstraction, Daytona sandbox management, and MongoDB persistence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Setting Up & Running -->
+    <div class="section" id="setup">
+      <h2>2. Setting Up &amp; Running the Project</h2>
+      <p style="margin-bottom:1rem;">This section covers everything you need to clone, configure, and run all parts of the bolt.diy project — backend, desktop frontend, and mobile app — in a local development environment.</p>
+
+      <!-- 2.1 Prerequisites -->
+      <div class="section" id="setup-prerequisites">
+        <h3>2.1 Prerequisites</h3>
+        <p style="margin-bottom:0.75rem;">Before setting up the project, ensure you have the following installed:</p>
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🟢 Node.js</h4>
+            <p style="font-size:0.8125rem;">Version <strong>≥ 18.18.0</strong> (required by all packages). Recommended: latest LTS (v20+). Check with <code>node --version</code>.</p>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);margin-top:0.5rem;">Download: <a href="https://nodejs.org" target="_blank">nodejs.org</a></p>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📦 npm</h4>
+            <p style="font-size:0.8125rem;">Bundled with Node.js. Check with <code>npm --version</code>. The project uses <code>npm ci</code> for reproducible installs in CI.</p>
+            <div class="info-callout" style="margin-top:0.5rem;font-size:0.75rem;">
+              ⚠️ The project may also use <code>pnpm</code>, <code>bun</code>, or <code>yarn</code>. Check <code>package.json</code> for <code>packageManager</code> field if npm fails.
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">☕ Java 17+</h4>
+            <p style="font-size:0.8125rem;">Required only for <strong>Android builds</strong>. The Gradle wrapper uses Java 17 (Temurin recommended).</p>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);margin-top:0.5rem;">Use SDKMAN: <code>sdk install java 17.0.9-tem</code></p>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🛠️ Git</h4>
+            <p style="font-size:0.8125rem;">For cloning the repository. Check with <code>git --version</code>.</p>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📱 Android SDK (optional)</h4>
+            <p style="font-size:0.8125rem;">Only needed for building the Android APK. Install Android Studio or use sdkmanager CLI. Requires API 34+ and build-tools.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">🔑 API Keys (Optional but Recommended)</h4>
+          <p style="font-size:0.8125rem;margin-bottom:0.75rem;">The following environment variables can be configured. Only the ones you need are required — start with one AI provider.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.75rem;">
+            <div>
+              <p style="font-weight:600;margin-bottom:0.25rem;">AI Provider Keys</p>
+              <ul style="list-style:none;">
+                <li><code>ANTHROPIC_API_KEY</code> — <a href="https://console.anthropic.com" target="_blank">Get key</a></li>
+                <li><code>OPENAI_API_KEY</code> — <a href="https://platform.openai.com/api-keys" target="_blank">Get key</a></li>
+                <li><code>GOOGLE_GENERATIVE_AI_API_KEY</code></li>
+                <li><code>GROQ_API_KEY</code></li>
+              </ul>
+            </div>
+            <div>
+              <p style="font-weight:600;margin-bottom:0.25rem;">Infrastructure Keys</p>
+              <ul style="list-style:none;">
+                <li><code>MONGODB_URI</code> — for chat persistence</li>
+                <li><code>DAYTONA_API_KEY</code> — for sandboxes</li>
+                <li><code>GITHUB_TOKEN</code> — for bug reports</li>
+              </ul>
+            </div>
+          </div>
+          <div class="warn-callout" style="margin-top:0.75rem;font-size:0.75rem;">
+            <strong>⚠️ Running without keys:</strong> The backend will start but AI chat requests will fail until at least one AI provider API key is configured.
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 Quick Start -->
+      <div class="section" id="setup-quickstart">
+        <h3>2.2 Quick Start</h3>
+        <p style="margin-bottom:0.75rem;">The fastest way to get bolt.diy running locally — clones, installs everything, and starts both the backend and desktop frontend.</p>
+
+        <div class="card">
+          <pre style="font-size:0.8125rem;white-space:pre-wrap;">
+# 1. Clone the repository
+git clone https://github.com/&lt;your-org&gt;/bolt-diy.git
+cd bolt-diy
+
+# 2. Install all dependencies (root + backend + frontend)
+npm run install:all
+
+# 3. Create .env file for the backend
+cat > backend/.env << 'EOF'
+# At minimum, set one AI provider key:
+ANTHROPIC_API_KEY=sk-ant-...
+# Optional persistence:
+MONGODB_URI=mongodb://localhost:27017/bolt-diy
+# Optional sandbox:
+DAYTONA_API_KEY=your-daytona-key
+EOF
+
+# 4. Start development servers (backend :3001 + frontend :5173)
+npm run dev</pre>
+        </div>
+
+        <div class="success-callout">
+          <strong>✅ Done!</strong> Open <a href="http://localhost:5173" target="_blank">http://localhost:5173</a> in your browser. The backend runs on <a href="http://localhost:3001" target="_blank">http://localhost:3001</a>.
+        </div>
+
+        <div class="mermaid" style="margin-top:1rem;">
+flowchart LR
+    subgraph "Quick Start Flow"
+        A["git clone"] --> B["npm run install:all"]
+        B --> C["Create backend/.env
+with AI provider key"]
+        C --> D["npm run dev"]
+    end
+
+    subgraph "npm run dev"
+        E["concurrently"]
+        F["npm run dev:backend
+tsx watch -> :3001"]
+        G["npm run dev:frontend
+vite dev -> :5173"]
+    end
+
+    D --> E
+    E --> F &amp; G
+</div>
+      </div>
+
+      <!-- 2.3 Backend Setup -->
+      <div class="section" id="setup-backend">
+        <h3>2.3 Backend Setup (Detailed)</h3>
+        <p style="margin-bottom:0.75rem;">The backend is an <strong>Express.js TypeScript server</strong> located in <code class="file-path">./backend/</code>. It uses <code>tsx</code> for hot-reload development.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📁 Key Files</h4>
+            <table style="font-size:0.75rem;">
+              <tr><td><code class="file-path">backend/package.json</code></td><td>Dependencies &amp; scripts</td></tr>
+              <tr><td><code class="file-path">backend/tsconfig.json</code></td><td>TypeScript config (ESNext target)</td></tr>
+              <tr><td><code class="file-path">backend/src/index.ts</code></td><td>Server entry point</td></tr>
+              <tr><td><code class="file-path">backend/.env</code></td><td>Environment variables (create this)</td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📜 Available Scripts</h4>
+            <table style="font-size:0.75rem;">
+              <tr><td><code>npm run dev</code></td><td>Start with hot-reload via <code>tsx watch</code></td></tr>
+              <tr><td><code>npm run build</code></td><td>Compile with <code>tsc</code> to <code>dist/</code></td></tr>
+              <tr><td><code>npm run start</code></td><td>Run compiled <code>dist/index.js</code></td></tr>
+              <tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code></td></tr>
+              <tr><td><code>npm run lint</code></td><td>ESLint check</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">⚙️ Environment Configuration</h4>
+          <p style="font-size:0.8125rem;margin-bottom:0.75rem;">Create <code class="file-path">backend/.env</code> with your configuration:</p>
+          <pre style="font-size:0.75rem;">
+# Server
+PORT=3001
+CORS_ORIGIN=http://localhost:5173
+
+# MongoDB (optional — chat persistence)
+MONGODB_URI=mongodb://localhost:27017/bolt-diy
+
+# Daytona Sandbox (optional — code execution)
+DAYTONA_API_KEY=
+DAYTONA_API_URL=https://app.daytona.io/api
+DAYTONA_TARGET=us
+
+# AI Providers (set at least ONE)
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+</pre>
+          <div class="warn-callout" style="font-size:0.75rem;margin-top:0.75rem;">
+            <strong>⚠️ Important:</strong> The <code>.env</code> file is loaded automatically via <code>dotenv</code> — no manual source command needed. The server reads from <code>process.env</code> directly.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">🚀 Running the Backend Standalone</h4>
+          <pre style="font-size:0.75rem;">
+# Development mode (with hot-reload)
+cd backend
+npm run dev
+# Server starts at http://localhost:3001
+
+# Production mode
+cd backend
+npm run build
+npm run start
+# Server starts from compiled dist/index.js</pre>
+          <div class="info-callout" style="margin-top:0.75rem;font-size:0.75rem;">
+            <strong>💡 Verify:</strong> Run <code>curl http://localhost:3001/health</code> — should return <code>{"status":"ok",...}</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.4 Desktop Frontend Setup -->
+      <div class="section" id="setup-frontend">
+        <h3>2.4 Desktop Frontend Setup</h3>
+        <p style="margin-bottom:0.75rem;">The desktop frontend is a <strong>Vite + React 18</strong> SPA in <code class="file-path">./frontend/</code>. It proxies API requests to the backend during development.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📁 Key Configuration</h4>
+            <p style="font-size:0.8125rem;">File: <code class="file-path">frontend/vite.config.ts</code></p>
+            <pre style="font-size:0.75rem;margin-top:0.5rem;">
+export default defineConfig({
+  plugins: [react(), UnoCSS(), nodePolyfills({...})],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
+  resolve: {
+    alias: { '~': path.resolve(__dirname, 'src') },
+  },
+});</pre>
+            <div class="info-callout" style="margin-top:0.5rem;font-size:0.75rem;">
+              <strong>🔁 API Proxy:</strong> The Vite dev server proxies all <code>/api/*</code> requests to the backend at <code>:3001</code>, so the frontend can make relative API calls without CORS issues.
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📜 Scripts</h4>
+            <table style="font-size:0.75rem;">
+              <tr><td><code>npm run dev</code></td><td>Start Vite dev server on <code>:5173</code></td></tr>
+              <tr><td><code>npm run build</code></td><td><code>tsc</code> + <code>vite build</code> (4GB heap)</td></tr>
+              <tr><td><code>npm run preview</code></td><td>Preview production build</td></tr>
+              <tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code></td></tr>
+              <tr><td><code>npm run lint</code></td><td>ESLint</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">🚀 Running the Frontend Standalone</h4>
+          <pre style="font-size:0.75rem;">
+cd frontend
+npm run dev
+# Opens at http://localhost:5173</pre>
+          <div class="warn-callout" style="margin-top:0.75rem;font-size:0.75rem;">
+            <strong>⚠️ Prerequisite:</strong> The <strong>backend must be running</strong> (<code>:3001</code>) for the frontend to function. Start it in a separate terminal with <code>npm run dev:backend</code> from the root, or <code>cd backend && npm run dev</code>.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">🎨 Important: UnoCSS Icons</h4>
+          <p style="font-size:0.8125rem;">The frontend uses UnoCSS with preset icons. Custom SVG icons are loaded from the <code class="file-path">frontend/icons/</code> directory at build time. If you add new SVG files there, they become available as <code>i-bolt:&lt;name&gt;</code> classes automatically.</p>
+        </div>
+      </div>
+
+      <!-- 2.5 Mobile Frontend Setup -->
+      <div class="section" id="setup-mobile">
+        <h3>2.5 Mobile Frontend Setup</h3>
+        <p style="margin-bottom:0.75rem;">The mobile frontend is a <strong>Capacitor-based Android app</strong> in <code class="file-path">./mobile-frontend/</code>. It can be developed as a web app with HMR, then compiled to a native APK.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🌐 Web Development Mode</h4>
+            <pre style="font-size:0.75rem;">
+cd mobile-frontend
+npm run dev
+# Opens at http://localhost:5174</pre>
+            <div class="info-callout" style="margin-top:0.5rem;font-size:0.75rem;">
+              <strong>📱 Web vs Native:</strong> The app works as a PWA in the browser with simulated mobile layout. Capacitor native features (keyboard, status bar) gracefully degrade when not on a native device.
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">📜 Scripts</h4>
+            <table style="font-size:0.75rem;">
+              <tr><td><code>npm run dev</code></td><td>Vite dev on <code>:5174</code> with API proxy</td></tr>
+              <tr><td><code>npm run build</code></td><td><code>tsc -b</code> + <code>vite build</code></td></tr>
+              <tr><td><code>npm run preview</code></td><td>Preview production build</td></tr>
+              <tr><td><code>npm run lint</code></td><td>Oxlint (Rust-based linter)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">📱 Capacitor Configuration</h4>
+          <p style="font-size:0.8125rem;margin-bottom:0.5rem;">File: <code class="file-path">mobile-frontend/capacitor.config.ts</code></p>
+          <pre style="font-size:0.75rem;">
+const config: CapacitorConfig = {
+  appId: 'com.boltdiy.app',
+  appName: 'bolt.diy',
+  webDir: 'dist',
+  server: { androidScheme: 'https' },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 1500,
+      backgroundColor: '#0d0d1a',
+      showSpinner: false,
+    },
+    StatusBar: {
+      overlaysWebView: true,
+      style: 'DARK',
+      backgroundColor: '#00000000',
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'DARK',
+    },
+  },
+};</pre>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">🔗 API Proxy for Mobile Development</h4>
+          <p style="font-size:0.8125rem;">File: <code class="file-path">mobile-frontend/vite.config.ts</code></p>
+          <pre style="font-size:0.75rem;">
+server: {
+  port: 5174,
+  proxy: {
+    '/api': {
+      target: 'http://localhost:3001',
+      changeOrigin: true,
+    },
+  },
+},</pre>
+          <p style="font-size:0.8125rem;margin-top:0.5rem;">Same as the desktop frontend — API calls are proxied to the backend on port 3001 during development.</p>
+          <div class="info-callout" style="margin-top:0.5rem;font-size:0.75rem;">
+            <strong>💡 Mobile Settings:</strong> The Settings screen allows users to configure a custom backend URL for when the app is running on an actual device (connected to a different host).
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.6 Android Build -->
+      <div class="section" id="setup-android">
+        <h3>2.6 Android APK Build</h3>
+        <p style="margin-bottom:0.75rem;">Build a native Android APK for sideloading. Requires Java 17+ and the Android SDK.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🏗️ Manual Build Steps</h4>
+            <pre style="font-size:0.75rem;">
+cd mobile-frontend
+
+# 1. Install dependencies
+npm ci
+
+# 2. Build web assets
+npm run build
+
+# 3. Sync with Android platform
+npx cap sync android
+npx cap copy
+
+# 4. Build debug APK
+cd android
+./gradlew assembleDebug
+
+# 5. Output location:
+# mobile-frontend/android/app/build/outputs/apk/debug/app-debug.apk</pre>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🤖 CI/CD Build (GitHub Actions)</h4>
+            <p style="font-size:0.8125rem;margin-bottom:0.75rem;">File: <code class="file-path">.github/workflows/android-build.yml</code></p>
+            <p style="font-size:0.8125rem;">The CI pipeline is triggered on:</p>
+            <ul style="font-size:0.75rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Pushing a tag matching <code>v*</code></li>
+              <li>✦ Manual trigger via <code>workflow_dispatch</code></li>
+            </ul>
+            <p style="font-size:0.8125rem;margin-top:0.75rem;">The workflow runs Ubuntu, sets up Node 20 + Java 17 + Android SDK, builds the web assets, syncs Capacitor, runs <code>assembleDebug</code>, renames the APK to <code>bolt-diy.apk</code>, and creates a GitHub Release with the APK attached.</p>
+          </div>
+        </div>
+
+        <div class="warn-callout" style="margin-top:1rem;font-size:0.8125rem;">
+          <strong>⚠️ Android SDK setup:</strong> If building locally, ensure <code>ANDROID_HOME</code> is set and the SDK's <code>platforms</code> and <code>build-tools</code> directories are installed. The minimal required API level is determined by Capacitor — typically API 34+.
+        </div>
+      </div>
+
+      <!-- 2.7 Troubleshooting -->
+      <div class="section" id="setup-troubleshooting">
+        <h3>2.7 Troubleshooting</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🟡 Backend won't start</h4>
+            <div style="font-size:0.8125rem;">
+              <p><strong>Symptom:</strong> <code>Error: Cannot find module</code></p>
+              <p><strong>Fix:</strong> Run <code>npm --prefix backend install</code> to install backend dependencies.</p>
+              <hr style="border-color:var(--border);margin:0.75rem 0;">
+              <p><strong>Symptom:</strong> <code>Port 3001 already in use</code></p>
+              <p><strong>Fix:</strong> Kill the process: <code>lsof -ti:3001 | xargs kill -9</code>, or set <code>PORT=3002</code> in <code>.env</code>.</p>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🟡 AI Chat not working</h4>
+            <div style="font-size:0.8125rem;">
+              <p><strong>Symptom:</strong> <code>401 Authentication Error</code> or <code>No response</code></p>
+              <p><strong>Fix:</strong> Ensure you have set a valid API key in <code>backend/.env</code> for the provider you're using (e.g., <code>ANTHROPIC_API_KEY</code>, <code>OPENAI_API_KEY</code>).</p>
+              <hr style="border-color:var(--border);margin:0.75rem 0;">
+              <p><strong>Symptom:</strong> Model list is empty</p>
+              <p><strong>Fix:</strong> Check the backend logs for provider registration errors. Some providers require dynamic model fetching via API.</p>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🟡 MongoDB connection failed</h4>
+            <div style="font-size:0.8125rem;">
+              <p><strong>Symptom:</strong> <code>MongoDB not configured</code> errors on chat storage endpoints</p>
+              <p><strong>Fix:</strong> Set <code>MONGODB_URI</code> in <code>backend/.env</code>. If you don't need persistence, the server will still work — chat history simply won't be saved.</p>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin:0 0 0.5rem;">🟡 Android build fails</h4>
+            <div style="font-size:0.8125rem;">
+              <p><strong>Symptom:</strong> Gradle build errors or missing SDK</p>
+              <p><strong>Fix:</strong> Verify Java 17+ is installed (<code>java -version</code>). Ensure <code>ANDROID_HOME</code> points to a valid SDK installation with API 34+.</p>
+              <hr style="border-color:var(--border);margin:0.75rem 0;">
+              <p><strong>Symptom:</strong> <code>npx cap sync</code> fails</p>
+              <p><strong>Fix:</strong> Ensure the mobile frontend built successfully first (<code>npm run build</code> in <code>mobile-frontend/</code>).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="margin:0 0 0.5rem;">🛠️ General Debugging Tips</h4>
+          <div style="font-size:0.8125rem;">
+            <ul style="list-style:none;">
+              <li>✦ Check backend logs: The server outputs colored scoped logs (<code>INFO</code>, <code>WARN</code>, <code>ERROR</code>) with scope tags like <code>[Server]</code>, <code>[MongoDB]</code>, <code>[LLMManager]</code>.</li>
+              <li>✦ Set <code>DEBUG=1</code> or adjust the log level in <code>backend/src/utils/logger.ts</code> for more verbose output.</li>
+              <li>✦ Run <code>npm run typecheck</code> from root to check TypeScript compilation across all packages.</li>
+              <li>✦ Run <code>npm run lint</code> from root to verify code style.</li>
+              <li>✦ The <code>NODE_ENV</code> environment variable affects logging verbosity — trace/debug level logs are suppressed in production.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. System Architecture -->
+    <div class="section" id="system-architecture">
+      <h2>3. System Architecture</h2>
+      <p style="margin-bottom:1rem;">The system follows a <strong>monorepo</strong> structure with three separate Node.js packages (root, backend, frontend, mobile-frontend) and a shared type system. Below is the high-level architecture.</p>
+      <div class="mermaid">
+graph TB
+    subgraph "Client Layer"
+        DF["Desktop Frontend
+React 18 + UnoCSS
+Port 5173"]
+        MF["Mobile Frontend
+React 19 + Capacitor
+Port 5174"]
+    end
+
+    subgraph "API Layer (Express.js)"
+        API["API Gateway
+Port 3001"]
+        RT["26+ Route Modules
+REST Endpoints"]
+        WS["WebSocket Server
+/api/sandbox/pty"]
+    end
+
+    subgraph "LLM Provider Layer"
+        LLMM["LLM Manager
+Provider Registry"]
+        P1["Anthropic<br/>Claude"]
+        P2["OpenAI<br/>GPT-4"]
+        P3["Google<br/>Gemini"]
+        P4["Groq"]
+        P5["Mistral"]
+        P6["OpenRouter"]
+        P7["AWS Bedrock"]
+        P8["Cohere"]
+        P9["DeepSeek"]
+        P10["Fireworks"]
+        P11["Cerebras"]
+        P12["Ollama"]
+        P13["LM Studio"]
+        P14["OpenAILike"]
+    end
+
+    subgraph "Sandbox Layer"
+        SM["Sandbox Manager"]
+        DAY["Daytona API
+Cloud Sandboxes"]
+        PTY["PTY Terminals"]
+        FS["File Operations"]
+        PREV["Preview / Port
+Forwarding"]
+    end
+
+    subgraph "Persistence Layer"
+        MDB["MongoDB
+Chat Storage"]
+        CHAT_MDL["Chat Model
+messages, systemPrompt,
+metadata"]
+    end
+
+    subgraph "External Services"
+        GH["GitHub API"]
+        GL["GitLab API"]
+        VC["Vercel API"]
+        NL["Netlify API"]
+        SB["Supabase API"]
+        DDG["DuckDuckGo
+Search"]
+    end
+
+    DF -->|HTTP /api/*| API
+    MF -->|HTTP /api/*| API
+    API --> RT
+    API --> WS
+    RT --> LLMM
+    LLMM --> P1 &amp; P2 &amp; P3 &amp; P4 &amp; P5 &amp; P6
+    LLMM --> P7 &amp; P8 &amp; P9 &amp; P10 &amp; P11 &amp; P12 &amp; P13 &amp; P14
+    RT --> SM
+    SM --> DAY
+    DAY --> PTY
+    DAY --> FS
+    DAY --> PREV
+    RT --> MDB
+    MDB --> CHAT_MDL
+    RT --> GH
+    RT --> GL
+    RT --> VC
+    RT --> NL
+    RT --> SB
+    RT --> DDG
+    WS --> SM
+</div>
+
+      <div class="info-callout">
+        <strong>Architecture Pattern:</strong> Monorepo with layered architecture. The backend acts as a unified API gateway for both the desktop and mobile clients. LLM providers are abstracted behind a common interface, enabling plug-and-play AI model switching. Sandboxed execution environments are managed on-demand via Daytona.
+      </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <h3 style="margin:0 0 0.75rem;">🏗️ Monorepo Structure</h3>
+        <pre style="font-size:0.75rem;">
+bolt-diy/
+├── package.json              # Root — orchestrates dev/build/typecheck
+├── backend/                  # Express.js API server
+│   ├── src/
+│   │   ├── index.ts          # Server bootstrap, route mounting
+│   │   ├── routes/           # 26 route modules
+│   │   ├── lib/
+│   │   │   ├── .server/llm/  # LLM streaming logic
+│   │   │   ├── db/           # MongoDB connection
+│   │   │   ├── models/       # Mongoose schemas (Chat)
+│   │   │   ├── modules/llm/  # Provider registry &amp; manager
+│   │   │   ├── services/     # GitHub, GitLab, MCP services
+│   │   │   ├── sandbox/      # Daytona sandbox manager
+│   │   │   └── common/       # Prompt library
+│   │   ├── types/            # Shared type definitions
+│   │   └── utils/            # Logger, constants, etc.
+│   └── package.json
+├── frontend/                 # Desktop SPA (Vite + React 18)
+│   ├── src/
+│   │   ├── routes/           # Index, Chat, Git, Preview pages
+│   │   ├── components/       # UI, Chat, Header, Terminal, etc.
+│   │   ├── lib/              # Hooks, API, Services, Stores
+│   │   ├── styles/           # SCSS, CSS, animations
+│   │   └── utils/            # Utility functions
+│   └── package.json
+├── mobile-frontend/          # Mobile app (Capacitor + React 19)
+│   ├── src/
+│   │   ├── screens/          # 5 screens
+│   │   ├── components/       # TabBar
+│   │   ├── lib/              # API, Stores, Utils, Capacitor
+│   │   └── App.tsx
+│   └── package.json
+└── .github/workflows/
+    └── android-build.yml     # CI/CD for Android APK</pre>
+      </div>
+    </div>
+
+    <!-- 3. Backend Architecture -->
+    <div class="section" id="backend">
+      <h2>4. Backend Architecture</h2>
+      <p style="margin-bottom:1rem;">The backend is an <strong>Express.js TypeScript server</strong> that runs on port 3001. It provides REST APIs for AI chat, LLM model management, sandboxed code execution, file operations, deployment integrations, Git operations, and more.</p>
+
+      <div class="mermaid">
+graph LR
+    subgraph "Server Bootstrap"
+        BOOT["createServer()"]
+        CORS["CORS Middleware"]
+        JSON["JSON Body Parser"]
+        ERR["Error Handler"]
+    end
+
+    subgraph "Core Routes"
+        CHAT["/api/chat<br/>SSE Streaming"]
+        LLM["/api/llmcall<br/>JSON Response"]
+        MOD["/api/models"]
+        CONF["/api/configured-providers"]
+        SYS["/api/system"]
+        FEAT["/api/features"]
+        MCP["/api/mcp"]
+    end
+
+    subgraph "Deploy Routes"
+        VC_DEP["/api/vercel<br/>/api/vercel-proxy"]
+        NL_DEP["/api/netlify<br/>/api/netlify-proxy"]
+    end
+
+    subgraph "Git Routes"
+        GH_RT["/api/github"]
+        GL_RT["/api/gitlab"]
+        GIT_PROXY["/api/git-proxy"]
+        GIT_INFO["/api/git-info"]
+    end
+
+    subgraph "Sandbox Routes"
+        SBX["/api/sandbox/*"]
+        SBX_WS["WebSocket<br/>/api/sandbox/:id/pty"]
+    end
+
+    subgraph "Misc Routes"
+        ENH["/api/enhancer"]
+        WS_RT["/api/web-search"]
+        EXP["/api/export-api-keys"]
+        ENV["/api/check-env-key"]
+        BUG["/api/bug-report"]
+        UPD["/api/update"]
+        UPD_MOD["/api/update-model-list"]
+    end
+
+    subgraph "Storage Routes"
+        CS["/api/chat-storage"]
+    end
+
+    BOOT --> CORS --> JSON --> CHAT &amp; LLM &amp; MOD &amp; CONF
+    JSON --> VC_DEP &amp; NL_DEP &amp; GH_RT &amp; GL_RT
+    JSON --> SBX &amp; ENH &amp; WS_RT &amp; EXP &amp; ENV &amp; BUG
+    JSON --> UPD &amp; UPD_MOD &amp; SYS &amp; FEAT &amp; MCP
+    JSON --> GIT_PROXY &amp; GIT_INFO &amp; CS
+</div>
+
+      <!-- 4.1 Route Reference -->
+      <div class="section" id="backend-routes">
+        <h3>4.1 Route Reference</h3>
+        <p style="margin-bottom:1rem;">The backend mounts <strong>26 route modules</strong> under the <code class="file-path">/api</code> prefix. Below is the complete reference.</p>
+        
+        <div class="card" style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th>Methods</th>
+                <th>File</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/health</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">index.ts</code></td>
+                <td>Health check endpoint</td>
+              </tr>
+              <tr>
+                <td><code>/api/chat</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">chat.ts</code></td>
+                <td>Streaming chat via SSE. Accepts messages array; streams token-by-token response.</td>
+              </tr>
+              <tr>
+                <td><code>/api/llmcall</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">llmcall.ts</code></td>
+                <td>Non-streaming LLM call. Returns full JSON response. Supports <code>chatId</code> for system prompt resolution.</td>
+              </tr>
+              <tr>
+                <td><code>/api/chat-storage</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">chats.ts</code></td>
+                <td>List all chats (sorted by updatedAt desc, with lastMessage preview)</td>
+              </tr>
+              <tr>
+                <td><code>/api/chat-storage/:chatId</code></td>
+                <td><span class="badge badge-success">GET</span> <span class="badge badge-warning">PUT</span> <span class="badge badge-destructive">DELETE</span></td>
+                <td><code class="file-path">chats.ts</code></td>
+                <td>Get/upsert/delete a chat by ID</td>
+              </tr>
+              <tr>
+                <td><code>/api/chat-storage/:chatId/messages</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">chats.ts</code></td>
+                <td>Append messages to existing chat</td>
+              </tr>
+              <tr>
+                <td><code>/api/models</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">models.ts</code></td>
+                <td>Get model list (static + dynamic from providers)</td>
+              </tr>
+              <tr>
+                <td><code>/api/configured-providers</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">configured-providers.ts</code></td>
+                <td>List all LLM providers with config, API key links, icons</td>
+              </tr>
+              <tr>
+                <td><code>/api/check-env-key</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">check-env-key.ts</code></td>
+                <td>Check if a provider's API key is configured in env</td>
+              </tr>
+              <tr>
+                <td><code>/api/enhancer</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">enhancer.ts</code></td>
+                <td>Enhance prompts using an LLM prompt engineer (SSE streaming)</td>
+              </tr>
+              <tr>
+                <td><code>/api/web-search</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">web-search.ts</code></td>
+                <td>DuckDuckGo web search or fetch URL content</td>
+              </tr>
+              <tr>
+                <td><code>/api/export-api-keys</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">export-api-keys.ts</code></td>
+                <td>Export all configured API keys from environment</td>
+              </tr>
+              <tr>
+                <td><code>/api/bug-report</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">bug-report.ts</code></td>
+                <td>Create GitHub issue in bolt.new repository</td>
+              </tr>
+              <tr>
+                <td><code>/api/mcp</code></td>
+                <td><span class="badge badge-success">GET</span> <span class="badge badge-warning">POST</span> <span class="badge badge-destructive">DELETE</span></td>
+                <td><code class="file-path">mcp.ts</code></td>
+                <td>Manage MCP (Model Context Protocol) servers</td>
+              </tr>
+              <tr>
+                <td><code>/api/vercel</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">vercel.ts</code></td>
+                <td>Deploy to Vercel (create project + deployment)</td>
+              </tr>
+              <tr>
+                <td><code>/api/netlify</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">netlify.ts</code></td>
+                <td>Deploy to Netlify (create site + deploy)</td>
+              </tr>
+              <tr>
+                <td><code>/api/github</code></td>
+                <td><span class="badge badge-success">GET</span> <span class="badge badge-warning">POST</span></td>
+                <td><code class="file-path">github.ts</code></td>
+                <td>GitHub user info, repos listing, create repo</td>
+              </tr>
+              <tr>
+                <td><code>/api/gitlab</code></td>
+                <td><span class="badge badge-success">GET</span> <span class="badge badge-warning">POST</span></td>
+                <td><code class="file-path">gitlab.ts</code></td>
+                <td>GitLab user info, create project</td>
+              </tr>
+              <tr>
+                <td><code>/api/supabase</code></td>
+                <td><span class="badge badge-success">GET</span> <span class="badge badge-warning">POST</span></td>
+                <td><code class="file-path">supabase.ts</code></td>
+                <td>Supabase projects list and creation</td>
+              </tr>
+              <tr>
+                <td><code>/api/git-proxy</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">git-proxy.ts</code></td>
+                <td>Proxy Git clone requests with auth token</td>
+              </tr>
+              <tr>
+                <td><code>/api/git-info</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">git-info.ts</code></td>
+                <td>Parse git URL to extract owner, repo, and service type</td>
+              </tr>
+              <tr>
+                <td><code>/api/system</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">system.ts</code></td>
+                <td>System info: Node version, platform, memory, uptime</td>
+              </tr>
+              <tr>
+                <td><code>/api/update</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">update.ts</code></td>
+                <td>Check for latest GitHub release version</td>
+              </tr>
+              <tr>
+                <td><code>/api/update-model-list</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">update-model-list.ts</code></td>
+                <td>Force refresh dynamic model list from providers</td>
+              </tr>
+              <tr>
+                <td><code>/api/sandbox</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">sandbox.ts</code></td>
+                <td>Create a new sandbox session</td>
+              </tr>
+              <tr>
+                <td><code>/api/sandbox/:id/exec</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">sandbox.ts</code></td>
+                <td>Execute a command in sandbox</td>
+              </tr>
+              <tr>
+                <td><code>/api/sandbox/:id/start|stop|pause|refresh</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">sandbox.ts</code></td>
+                <td>Sandbox lifecycle management</td>
+              </tr>
+              <tr>
+                <td><code>/api/sandbox/:id/files/*</code></td>
+                <td><span class="badge badge-success">POST</span> <span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">sandbox.ts</code></td>
+                <td>File operations: read, write, mkdir, rm, move, search, replace, permissions</td>
+              </tr>
+              <tr>
+                <td><code>/api/sandbox/:id/preview/:port</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">sandbox.ts</code></td>
+                <td>Get preview link for sandbox port</td>
+              </tr>
+              <tr>
+                <td><code>/api/config</code></td>
+                <td><span class="badge badge-success">GET</span></td>
+                <td><code class="file-path">config.ts</code></td>
+                <td>App configuration: default model, providers, starter templates</td>
+              </tr>
+              <tr>
+                <td><code>/api/features</code></td>
+                <td><span class="badge badge-success">GET</span> <span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">features.ts</code></td>
+                <td>Feature flags listing and viewed acknowledgment</td>
+              </tr>
+              <tr>
+                <td><code>/api/vercel-proxy</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">vercel-proxy.ts</code></td>
+                <td>Proxy Vercel API requests: user, projects, deployments, project details</td>
+              </tr>
+              <tr>
+                <td><code>/api/netlify-proxy</code></td>
+                <td><span class="badge badge-success">POST</span></td>
+                <td><code class="file-path">netlify-proxy.ts</code></td>
+                <td>Proxy Netlify API requests: user, sites, site details, deploys</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4.2 Database & Models -->
+      <div class="section" id="backend-db-models">
+        <h3>4.2 Database &amp; Models</h3>
+        <p style="margin-bottom:1rem;">MongoDB is used for <strong>chat persistence</strong>. Connection is established on server start and gracefully disconnected on shutdown signals (<code>SIGTERM</code>/<code>SIGINT</code>).</p>
+        
+        <div class="grid-2">
+          <div class="card">
+            <h4>MongoDB Connection</h4>
+            <p style="font-size:0.8125rem;color:var(--muted-foreground);margin-bottom:0.75rem;">File: <code class="file-path">backend/src/lib/db/mongodb.ts</code></p>
+            <pre style="font-size:0.75rem;">
+// Connection flow:
+export async function connectMongoDB(): Promise&lt;void&gt; {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    logger.warn('MONGODB_URI not set — disabled');
+    return;
+  }
+  await mongoose.connect(uri);
+  isConnected = true;
+}
+
+export function isMongoDBConnected(): boolean {
+  return isConnected;
+}</pre>
+            <div class="warn-callout" style="margin-top:0.75rem;">
+              <strong>⚠️ Conditional:</strong> If <code>MONGODB_URI</code> is not set, MongoDB is skipped entirely. The server still functions — chat persistence is simply unavailable.
+            </div>
+          </div>
+          <div class="card">
+            <h4>Chat Schema (Mongoose)</h4>
+            <p style="font-size:0.8125rem;color:var(--muted-foreground);margin-bottom:0.75rem;">File: <code class="file-path">backend/src/lib/models/Chat.ts</code></p>
+            <pre style="font-size:0.75rem;">
+const ChatSchema = new Schema({
+  chatId:      { type: String, required: true, unique: true, index: true },
+  title:       { type: String, default: 'New Chat' },
+  messages: [{ 
+    id:        String,
+    role:      { enum: ['user','assistant','system'] },
+    content:   String,
+    timestamp: Number 
+  }],
+  systemPrompt: String,
+  metadata:     Schema.Types.Mixed,
+}, { timestamps: true });
+
+ChatSchema.index({ updatedAt: -1 });</pre>
+            <div class="info-callout" style="margin-top:0.75rem;">
+              <strong>Index:</strong> <code>updatedAt: -1</code> for efficient chat history listing sorted by most recent.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.3 LLM Provider System -->
+      <div class="section" id="backend-llm">
+        <h3>4.3 LLM Provider System</h3>
+        <p style="margin-bottom:1rem;">The LLM system uses a <strong>provider abstraction pattern</strong>. Each AI provider extends <code class="file-path">BaseProvider</code> and is auto-registered at startup. The <code class="file-path">LLMManager</code> (singleton) manages discovery, caching, and model list generation.</p>
+
+        <div class="mermaid">
+graph TB
+    subgraph "Provider Registry"
+        LLM_MGR["LLMManager (Singleton)"]
+        REG["Provider Registration
+Auto-discover from /registry"]
+        CACHE["Dynamic Model Cache"]
+    end
+
+    subgraph "BaseProvider"
+        BP["abstract BaseProvider"]
+        SM["staticModels: ModelInfo[]"]
+        GM["getDynamicModels?()"]
+        MI["getModelInstance()"]
+        CONF["config: apiTokenKey, baseUrlKey"]
+    end
+
+    subgraph "Registered Providers"
+        ANTH["Anthropic"]
+        OAI["OpenAI"]
+        GOOG["Google"]
+        GROQ["Groq"]
+        MIST["Mistral"]
+        OR["OpenRouter"]
+        BED["AWS Bedrock"]
+        COH["Cohere"]
+        DS["DeepSeek"]
+        FW["Fireworks"]
+        CB["Cerebras"]
+        OLL["Ollama"]
+        LMS["LM Studio"]
+        OAL["OpenAILike"]
+    end
+
+    subgraph "Streaming"
+        SST["streamText()
+Vercel AI SDK"]
+        SW["SwitchableStream"]
+    end
+
+    LLM_MGR --> REG --> BP
+    BP --> SM &amp; GM &amp; MI
+    REG --> ANTH &amp; OAI &amp; GOOG &amp; GROQ
+    REG --> MIST &amp; OR &amp; BED &amp; COH
+    REG --> DS &amp; FW &amp; CB &amp; OLL
+    REG --> LMS &amp; OAL
+    SST --> SW
+    LLM_MGR --> CACHE
+    LLM_MGR --> SST
+</div>
+
+        <div class="info-callout" style="margin-top:1rem;">
+          <strong>14 Supported Providers:</strong> Anthropic, OpenAI, Google (Gemini), Groq, Mistral, OpenRouter, AWS Bedrock, Cohere, DeepSeek, Fireworks, Cerebras, Ollama, LM Studio, and generic OpenAILike.
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4>Model Info Type</h4>
+          <pre style="font-size:0.75rem;">
+interface ModelInfo {
+  name: string;              // e.g. "claude-3-5-sonnet-latest"
+  label: string;             // Display name
+  provider: string;          // Provider name
+  maxTokenAllowed: number;   // Max context tokens
+  maxCompletionTokens?: number;
+}
+
+interface ProviderInfo {
+  staticModels: ModelInfo[];
+  getDynamicModels?(): Promise&lt;ModelInfo[]&gt;;
+  getModelInstance(opts): LanguageModelV1;
+  getApiKeyLink?: string;
+  labelForGetApiKey?: string;
+  icon?: string;
+}</pre>
+        </div>
+      </div>
+
+      <!-- 4.4 Sandbox System -->
+      <div class="section" id="backend-sandbox">
+        <h3>4.4 Sandbox System</h3>
+        <p style="margin-bottom:1rem;">The sandbox system uses <strong>Daytona SDK</strong> to create on-demand cloud sandboxes for code execution. Each sandbox provides a full Linux environment with file system, terminal, and port forwarding capabilities.</p>
+
+        <div class="mermaid">
+graph TB
+    subgraph "SandboxManager (Singleton)"
+        SM["SandboxManager"]
+        SESS["sessions: Map&lt;id, SandboxSession&gt;"]
+        PTY_MAP["ptySessions: Map&lt;id, PtySession&gt;"]
+        TTL["Auto-Cleanup Timer (30 min)"]
+    end
+
+    subgraph "SandboxSession"
+        SS["session"]
+        SID["id: string"]
+        SB["sandbox: Daytona Sandbox"]
+        CT["createdAt: Date"]
+        LA["lastActivity: Date"]
+        LANG["language: string"]
+        WD["workdir: string"]
+    end
+
+    subgraph "Daytona Sandbox"
+        DS["Daytona Cloud Sandbox"]
+        FS["File System API"]
+        PROC["Process Executor"]
+        PTY["PTY Terminal"]
+        PREV["Preview Links"]
+    end
+
+    subgraph "REST + WebSocket"
+        HTTP["HTTP Endpoints
+/api/sandbox/*"]
+        WS["WebSocket
+/api/sandbox/:id/pty"]
+    end
+
+    HTTP --> SM --> SS --> DS
+    WS --> DS --> PTY
+    DS --> FS
+    DS --> PROC
+    DS --> PREV
+</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div class="card">
+            <h4>Sandbox API Operations</h4>
+            <div style="font-size:0.75rem;">
+              <p><strong>Lifecycle:</strong> <code>POST /sandbox</code>, <code>DELETE /sandbox/:id</code>, start, stop, pause, refresh</p>
+              <p><strong>Command:</strong> <code>POST /sandbox/:id/exec</code></p>
+              <p><strong>Files:</strong> read, write, mkdir, rm, move, find, search, replace, permissions, readdir, info</p>
+              <p><strong>Preview:</strong> <code>GET /sandbox/:id/preview/:port</code></p>
+              <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
+                <p><strong>PTY WebSocket:</strong> Connect to <code>ws://host/api/sandbox/{id}/pty</code> for interactive terminal with resize and input support.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h4>Auto-Cleanup Mechanism</h4>
+            <pre style="font-size:0.75rem;">
+// 30-minute TTL
+private readonly SESSION_TTL_MS = 30 * 60 * 1000;
+
+// Checks every 60 seconds
+private startCleanupTimer(id: string) {
+  setInterval(() => {
+    const elapsed = Date.now() - session.lastActivity.getTime();
+    if (elapsed > SESSION_TTL_MS) {
+      this.destroySandbox(id);
+    }
+  }, 60_000);
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  await SandboxManager.getInstance().cleanup();
+  await disconnectMongoDB();
+  process.exit(0);
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.5 Services -->
+      <div class="section" id="backend-services">
+        <h3>4.5 Services &amp; Integrations</h3>
+        <div class="grid-3">
+          <div class="card">
+            <h4>🔗 GitHub API</h4>
+            <p style="font-size:0.8125rem;color:var(--muted-foreground);"><code class="file-path">githubApiService.ts</code></p>
+            <ul style="font-size:0.75rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ getUser() — authenticated user info</li>
+              <li>✦ getRepos() — list user repos</li>
+              <li>✦ createRepo() — create new repo</li>
+              <li>✦ pushFiles() — push files to repo</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🔗 GitLab API</h4>
+            <p style="font-size:0.8125rem;color:var(--muted-foreground);"><code class="file-path">gitlabApiService.ts</code></p>
+            <ul style="font-size:0.75rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ getUser() — authenticated user info</li>
+              <li>✦ createProject() — create new project</li>
+              <li>✦ Uses PRIVATE-TOKEN auth</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🔗 MCP Service</h4>
+            <p style="font-size:0.8125rem;color:var(--muted-foreground);"><code class="file-path">mcpService.ts</code></p>
+            <ul style="font-size:0.75rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Register/remove MCP servers</li>
+              <li>✦ Supports stdio &amp; SSE transports</li>
+              <li>✦ Model Context Protocol</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4>🔒 Security</h4>
+          <p style="font-size:0.8125rem;color:var(--muted-foreground);margin-bottom:0.5rem;">File: <code class="file-path">backend/src/lib/security.ts</code></p>
+          <p style="font-size:0.8125rem;">Web search URLs are validated using <code>validateWebSearchUrl()</code> which checks against an allowed URL list and enforces HTTPS.</p>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h4>🎨 Prompt Library</h4>
+          <p style="font-size:0.8125rem;color:var(--muted-foreground);margin-bottom:0.5rem;">File: <code class="file-path">backend/src/lib/common/prompt-library.ts</code></p>
+          <p style="font-size:0.8125rem;">Exports three prompts: <code>getSystemPrompt()</code> (main system prompt for Bolt assistant), <code>CONTINUE_PROMPT</code>, and <code>PROMPT</code> (default).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Desktop Frontend -->
+    <div class="section" id="frontend-desktop">
+      <h2>5. Desktop Frontend</h2>
+      <p style="margin-bottom:1rem;">The desktop frontend is a <strong>feature-rich SPA</strong> built with React 18, Vite, UnoCSS, and a suite of specialized UI components.</p>
+
+      <div class="mermaid">
+graph TB
+    subgraph "Routing (React Router)"
+        IDX["/ — IndexPage"]
+        CHAT["/chat/:id — ChatPage"]
+        GIT["/git — GitPage"]
+        PREV["/api/preview/:id — PreviewPage"]
+    end
+
+    subgraph "Core Components"
+        HEAD["Header"]
+        CHAT_C["Chat Component"]
+        BASE["BaseChat"]
+        GIT_IMP["GitUrlImport"]
+    end
+
+    subgraph "Key Libraries"
+        CM["CodeMirror
+8 language modes"]
+        XT["xterm.js
+Terminal Emulator"]
+        FM["Framer Motion
+Animations"]
+        RD["React DnD
+Drag & Drop"]
+        RT["React Toastify
+Notifications"]
+        SH["Shiki
+Syntax Highlighting"]
+    end
+
+    subgraph "State Management"
+        NS["Nano Stores
+Theme, Settings"]
+        ZS["Zustand
+Local state"]
+    end
+
+    subgraph "Build Tools"
+        V["Vite 5"]
+        UNO["UnoCSS
+Preset Icons (500+)"]
+        NP["Node Polyfills
+Buffer, Process"]
+    end
+
+    IDX --> HEAD &amp; CHAT_C
+    GIT --> GIT_IMP
+    PREV --> PreviewPage
+    CHAT_C --> CM &amp; XT &amp; SH
+</div>
+
+      <div class="card" style="margin-top:1rem;">
+        <h3 style="margin:0 0 0.75rem;">📦 Desktop Frontend Dependencies</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;font-size:0.75rem;">
+          <div>
+            <p style="font-weight:600;margin-bottom:0.375rem;">UI &amp; Components</p>
+            <ul style="list-style:none;">
+              <li>✦ @radix-ui/* (8 packages)</li>
+              <li>✦ @headlessui/react</li>
+              <li>✦ @heroicons/react</li>
+              <li>✦ @phosphor-icons/react</li>
+              <li>✦ lucide-react</li>
+              <li>✦ react-markdown</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-weight:600;margin-bottom:0.375rem;">Editor &amp; Terminal</p>
+            <ul style="list-style:none;">
+              <li>✦ @codemirror/* (10 packages)</li>
+              <li>✦ @xterm/xterm</li>
+              <li>✦ @uiw/codemirror-theme-vscode</li>
+              <li>✦ shiki</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-weight:600;margin-bottom:0.375rem;">Utilities</p>
+            <ul style="list-style:none;">
+              <li>✦ ai (@ai-sdk/react)</li>
+              <li>✦ isomorphic-git</li>
+              <li>✦ chart.js + react-chartjs-2</li>
+              <li>✦ jsPDF + jszip</li>
+              <li>✦ date-fns</li>
+              <li>✦ zustand, nanostores</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:1rem;">
+        <div class="card">
+          <h4>IndexPage (/)</h4>
+          <p style="font-size:0.75rem;color:var(--muted-foreground);">File: <code class="file-path">frontend/src/routes/IndexPage.tsx</code></p>
+          <p style="font-size:0.8125rem;margin-top:0.5rem;">Main app page with BackgroundRays effect, Header, and Chat component. Uses client-side rendering detection to switch between Chat (client) and BaseChat (SSR fallback).</p>
+        </div>
+        <div class="card">
+          <h4>PreviewPage (/api/preview/:id)</h4>
+          <p style="font-size:0.75rem;color:var(--muted-foreground);">File: <code class="file-path">frontend/src/routes/PreviewPage.tsx</code></p>
+          <p style="font-size:0.8125rem;margin-top:0.5rem;">Sandbox preview iframe with BroadcastChannel communication for live refresh on file changes. Sandbox attribute allows scripts, forms, popups, and same-origin.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Mobile Frontend -->
+    <div class="section" id="mobile-frontend">
+      <h2>6. Mobile Frontend</h2>
+      <p style="margin-bottom:1rem;">The mobile frontend is a <strong>Capacitor-based Android app</strong> built with React 19 and Tailwind CSS 4. It communicates with the backend API via HTTP and is designed for touch-first mobile interactions.</p>
+
+      <div class="mermaid">
+graph TB
+    subgraph "Mobile App (Capacitor)"
+        APP["App.tsx
+Tab Navigation"]
+        TB["TabBar
+5 Tabs"]
+    end
+
+    subgraph "Screens"
+        CS["ChatScreen
+AI Chat + Streaming"]
+        FS["FilesScreen
+File Explorer"]
+        TS["TerminalScreen
+Command Execution"]
+        DS["DeployScreen
+Vercel/Netlify"]
+        SS["SettingsScreen
+Config + API Keys"]
+    end
+
+    subgraph "State (Zustand)"
+        CHAT_ST["useChatStore
+messages, history"]
+        SET_ST["useSettingsStore
+provider, model, keys"]
+        FILE_ST["useFilesStore
+files, sandbox"]
+    end
+
+    subgraph "API Layer"
+        API["api.ts
+fetch wrappers"]
+        UTIL["utils.ts
+IDs, formatting, icons"]
+        SYS_PROMPT["system-prompt.ts
+Bolt Assistant Prompt"]
+        CAP["capacitor.ts
+Keyboard, StatusBar"]
+    end
+
+    subgraph "Native Plugins"
+        KEYB["@capacitor/keyboard"]
+        STATUS["@capacitor/status-bar"]
+        SPLASH["@capacitor/splash-screen"]
+    end
+
+    APP --> TB
+    TB --> CS &amp; FS &amp; TS &amp; DS &amp; SS
+    CS --> CHAT_ST &amp; API
+    FS --> FILE_ST &amp; API
+    TS --> FILE_ST &amp; API
+    DS --> API
+    SS --> SET_ST &amp; API
+    CHAT_ST --> API
+    SET_ST --> API
+    APP --> CAP --> KEYB &amp; STATUS &amp; SPLASH
+</div>
+
+      <!-- 6.1 Screen Reference -->
+      <div class="section" id="mobile-screens">
+        <h3>6.1 Screen Reference</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="card">
+            <h4>💬 ChatScreen</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);"><code class="file-path">mobile-frontend/src/screens/ChatScreen.tsx</code></p>
+            <ul style="font-size:0.8125rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Provider/model selector in header</li>
+              <li>✦ SSE streaming response rendering</li>
+              <li>✦ Chat history sidebar (load/delete)</li>
+              <li>✦ Prompt enhancement button (✨)</li>
+              <li>✦ Auto-scroll to latest message</li>
+              <li>✦ MongoDB-backed persistence</li>
+              <li>✦ Auto-create chat entry on first message</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>📁 FilesScreen</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);"><code class="file-path">mobile-frontend/src/screens/FilesScreen.tsx</code></p>
+            <ul style="font-size:0.8125rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Sandbox file tree explorer</li>
+              <li>✦ Directory expand/collapse</li>
+              <li>✦ File content viewer (read-only)</li>
+              <li>✦ Back navigation from file view</li>
+              <li>✦ Auto-creates sandbox on mount</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>⌨️ TerminalScreen</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);"><code class="file-path">mobile-frontend/src/screens/TerminalScreen.tsx</code></p>
+            <ul style="font-size:0.8125rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Execute commands in sandbox</li>
+              <li>✦ Command history with arrow keys</li>
+              <li>✦ stdout/stderr color-coded output</li>
+              <li>✦ Connection status indicator</li>
+              <li>✦ Auto-connects sandbox on mount</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🚀 DeployScreen</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);"><code class="file-path">mobile-frontend/src/screens/DeployScreen.tsx</code></p>
+            <ul style="font-size:0.8125rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Vercel / Netlify toggle</li>
+              <li>✦ API token input</li>
+              <li>✦ Deployment status tracking</li>
+              <li>✦ Success/error result display</li>
+              <li>✦ Live URL on success</li>
+            </ul>
+          </div>
+          <div class="card" style="grid-column:span 2;">
+            <h4>⚙️ SettingsScreen</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);"><code class="file-path">mobile-frontend/src/screens/SettingsScreen.tsx</code></p>
+            <ul style="font-size:0.8125rem;list-style:none;margin-top:0.5rem;">
+              <li>✦ Backend URL configuration + save</li>
+              <li>✦ Connection test with success/error feedback</li>
+              <li>✦ AI provider selector dropdown</li>
+              <li>✦ Model selector (fetches dynamically)</li>
+              <li>✦ API key management per provider</li>
+              <li>✦ About section with version info</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6.2 State Management -->
+      <div class="section" id="mobile-stores">
+        <h3>6.2 State Management (Zustand)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="card">
+            <h4>useSettingsStore</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);">LocalStorage-backed settings</p>
+            <pre style="font-size:0.7rem;margin-top:0.5rem;">
+{
+  backendUrl: string (default: http://localhost:3001)
+  provider: string (default: 'Anthropic')
+  model: string (default: 'claude-3-5-sonnet-latest')
+  apiKeys: Record&lt;string, string&gt;
+  
+  setBackendUrl(url)
+  setProvider(p)
+  setModel(m)
+  setApiKey(provider, key)
+}</pre>
+          </div>
+          <div class="card">
+            <h4>useChatStore</h4>
+            <p style="font-size:0.75rem;color:var(--muted-foreground);">MongoDB-backed chat persistence</p>
+            <pre style="font-size:0.7rem;margin-top:0.5rem;">
+{
+  messages: ChatMessage[]
+  isLoading: boolean
+  currentChatId: string | null
+  chatHistory: ChatSummary[]
+  
+  addMessage(msg)
+  updateMessage(id, content)
+  setLoading(bool)
+  saveCurrentChat()        // upsert to MongoDB
+  loadChat(id)             // fetch from MongoDB
+  deleteChat(id)
+  startNewChat()
+  loadHistory()            // fetch list from MongoDB
+}</pre>
+          </div>
+          <div class="card" style="grid-column:span 2;">
+            <h4>useFilesStore</h4>
+            <pre style="font-size:0.7rem;">
+{
+  files: FileNode[]
+  selectedFile: string | null
+  fileContent: string
+  sandboxId: string | null
+  
+  setFiles(files)
+  selectFile(path, content)
+  setSandboxId(id)
+  clearSelection()
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Full API Reference -->
+    <div class="section" id="api-reference">
+      <h2>7. Full API Reference</h2>
+      <p style="margin-bottom:1rem;">Detailed request/response schemas for the most important API endpoints.</p>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-success">POST</span> <code>/api/chat</code> — Streaming Chat
+        </h4>
+        <p style="font-size:0.75rem;color:var(--muted-foreground);margin-bottom:0.75rem;">Streams AI responses via Server-Sent Events (SSE).</p>
+        <pre style="font-size:0.75rem;">
+// Request Body
+{
+  "messages": [{ "role": "user"|"assistant"|"system", "content": "string" }],
+  "provider": "Anthropic",            // optional, default: Anthropic
+  "model": "claude-3-5-sonnet-latest", // optional
+  "apiKeys": {},                       // optional
+  "providerSettings": {},              // optional
+  "systemPrompt": "..."                // optional, overrides default
+}
+
+// Response (SSE Stream)
+data: {"text": "Hello"}
+data: {"text": "! How"}
+data: {"text": " can I help"}
+data: {"text": " you?"}
+data: [DONE]</pre>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-success">POST</span> <code>/api/llmcall</code> — Non-Streaming LLM
+        </h4>
+        <p style="font-size:0.75rem;color:var(--muted-foreground);margin-bottom:0.75rem;">Returns complete AI response as JSON. Supports <code>chatId</code> for MongoDB system prompt resolution.</p>
+        <pre style="font-size:0.75rem;">
+// Request Body
+{
+  "message": "Build me a todo app",     // single message string
+  "messages": [...],                     // OR message array
+  "chatId": "chat-1719584400000",        // optional, for system prompt lookup
+  "provider": "Anthropic",
+  "model": "claude-3-5-sonnet-latest",
+  "apiKeys": {}
+}
+
+// Response
+{
+  "content": "Here's a complete todo app..."
+}</pre>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-success">GET</span> <code>/api/chat-storage</code> — List Chats
+        </h4>
+        <p style="font-size:0.75rem;color:var(--muted-foreground);margin-bottom:0.75rem;">Returns chat summaries (no full messages) for sidebar display.</p>
+        <pre style="font-size:0.75rem;">
+// Response
+[
+  {
+    "chatId": "chat-1719584400000",
+    "title": "Build a todo app with React",
+    "createdAt": "2025-06-28T12:00:00.000Z",
+    "updatedAt": "2025-06-28T12:05:00.000Z",
+    "lastMessage": {
+      "role": "assistant",
+      "content": "Here's a complete React todo app..."
+    }
+  }
+]</pre>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-warning">PUT</span> <code>/api/chat-storage/:chatId</code> — Upsert Chat
+        </h4>
+        <p style="font-size:0.75rem;color:var(--muted-foreground);margin-bottom:0.75rem;">Create or update a chat document.</p>
+        <pre style="font-size:0.75rem;">
+// Request Body
+{
+  "title": "Build a todo app",
+  "messages": [{ "id": "abc123", "role": "user", "content": "Hi", "timestamp": 1719584400000 }],
+  "systemPrompt": "You are Bolt...",
+  "metadata": {}
+}</pre>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-success">POST</span> <code>/api/sandbox</code> — Create Sandbox
+        </h4>
+        <pre style="font-size:0.75rem;">
+// Request Body
+{ "language": "typescript", "envVars": {} }
+
+// Response
+{
+  "id": "sandbox-1719584400000",
+  "language": "typescript",
+  "workdir": "/home/user",
+  "createdAt": "2025-06-28T12:00:00.000Z"
+}</pre>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-success">GET</span> <code>/api/config</code> — App Configuration
+        </h4>
+        <pre style="font-size:0.75rem;">
+// Response
+{
+  "defaultModel": "claude-3-5-sonnet-latest",
+  "defaultProvider": "Anthropic",
+  "providers": [
+    {
+      "name": "Anthropic",
+      "getApiKeyLink": "https://console.anthropic.com/...",
+      "labelForGetApiKey": "Get your Anthropic API key",
+      "icon": "i-bolt:anthropic",
+      "staticModels": [...],
+      "isLocalProvider": false
+    }
+  ],
+  "starterTemplates": [
+    {
+      "name": "NextJS Shadcn",
+      "label": "Next.js with shadcn/ui",
+      "description": "...",
+      "githubRepo": "xKevIsDev/bolt-nextjs-shadcn-template",
+      "tags": ["nextjs", "react", "typescript", "shadcn", "tailwind"],
+      "icon": "i-bolt:nextjs"
+    }
+  ]
+}</pre>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <h4 style="margin:0 0 0.5rem;">
+          <span class="badge badge-success">GET</span> <code>/api/features</code> — Feature Flags
+        </h4>
+        <p style="font-size:0.75rem;color:var(--muted-foreground);margin-bottom:0.75rem;">7 pre-defined features that can be toggled via env vars (<code>FEATURE_*</code>).</p>
+        <pre style="font-size:0.75rem;">
+// Response
+{
+  "features": [
+    { "id": "dark-mode",           "name": "Dark Mode",           "enabled": true },
+    { "id": "tab-management",      "name": "Tab Management",      "enabled": true },
+    { "id": "context-optimization","name": "Context Optimization", "enabled": true },
+    { "id": "design-scheme",        "name": "Design Scheme",      "enabled": true },
+    { "id": "mcp-tools",           "name": "MCP Tools",           "enabled": true },
+    { "id": "speech-input",        "name": "Speech Input",        "enabled": true },
+    { "id": "experimental-multimodal", "name": "Experimental: Multimodal Input", "enabled": false }
+  ]
+}</pre>
+      </div>
+    </div>
+
+    <!-- 8. Data Flow Diagrams -->
+    <div class="section" id="data-flow">
+      <h2>8. Data Flow Diagrams</h2>
+
+      <h3>Chat Message Flow (Mobile → Backend → AI → Response)</h3>
+      <div class="mermaid">
+sequenceDiagram
+    actor User
+    participant MF as Mobile Frontend
+    participant API as Backend API
+    participant MDB as MongoDB
+    participant LLM as LLM Provider
+
+    User->>MF: Type message & tap send
+    MF->>MF: Create user message
+    MF->>MF: Check if new chat → create MongoDB entry with systemPrompt
+    
+    MF->>API: POST /api/llmcall
+    Note over MF,API: { message, chatId, provider, model }
+    
+    API->>MDB: Lookup Chat by chatId
+    MDB-->>API: Chat document (with systemPrompt)
+    
+    API->>API: Build messages array with system prompt
+    API->>LLM: streamText({ messages, provider, model })
+    
+    LLM-->>API: Stream text response
+    API-->>MF: JSON response { content: "..." }
+    
+    MF->>MF: Update assistant message in state
+    
+    MF->>API: PUT /api/chat-storage/:chatId
+    API->>MDB: Upsert chat with messages
+    
+    MDB-->>MF: Saved confirmation
+    MF-->>User: Display AI response
+</div>
+
+      <h3>Sandbox Code Execution Flow</h3>
+      <div class="mermaid">
+sequenceDiagram
+    actor User
+    participant MF as Mobile Frontend
+    participant API as Backend API
+    participant SM as Sandbox Manager
+    participant DAY as Daytona Cloud
+
+    User->>MF: Open Terminal/Files tab
+    
+    MF->>API: POST /api/sandbox
+    API->>SM: createSandbox("typescript")
+    SM->>DAY: daytona.create({ language, public: true })
+    DAY-->>SM: Sandbox session with workdir
+    SM-->>API: { id, language, workdir }
+    API-->>MF: Sandbox created
+    
+    User->>MF: Type command & execute
+    MF->>API: POST /api/sandbox/:id/exec
+    API->>SM: executeCommand(id, "npm run dev")
+    SM->>DAY: sandbox.process.executeCommand(cmd)
+    DAY-->>SM: { exitCode, result }
+    SM-->>API: Command result
+    API-->>MF: Display output
+    
+    Note over SM,DAY: 30-minute idle TTL
+    SM->>SM: Auto-cleanup timer check
+    SM->>DAY: destroySandbox(id)
+</div>
+
+      <h3>Mobile Chat Lifecycle</h3>
+      <div class="mermaid">
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> SelectingProvider: User opens Settings
+    Idle --> Typing: User types message
+    Typing --> Sending: Tap send
+    Sending --> CheckChat: Create new chat?
+    CheckChat --> CreateEntry: Yes (no currentChatId)
+    CheckChat --> StreamResponse: No (existing chat)
+    CreateEntry --> StreamResponse: Save chat to MongoDB
+    StreamResponse --> Receiving: SSE reading
+    Receiving --> Complete: Stream done
+    Complete --> SaveToDB: Save to MongoDB
+    SaveToDB --> Idle
+    Idle --> History: Tap history button
+    History --> LoadChat: Select chat
+    LoadChat --> Idle: Load messages
+    Idle --> NewChat: Tap new chat
+    NewChat --> Idle: Clear state
+</div>
+    </div>
+
+    <!-- 9. Deployment & CI/CD -->
+    <div class="section" id="deployment">
+      <h2>9. Deployment &amp; CI/CD</h2>
+
+      <div class="mermaid">
+graph LR
+    subgraph "Development"
+        DEV["npm run dev
+Backend:3001 + Frontend:5173"]
+    end
+
+    subgraph "Build"
+        BB["npm run build:backend
+tsc -> dist/"]
+        BF["npm run build:frontend
+tsc + vite build"]
+    end
+
+    subgraph "CI/CD (GitHub Actions)"
+        ANDROID["android-build.yml"]
+        CHECKOUT["Checkout code"]
+        NODE_SETUP["Setup Node 20"]
+        JAVA_SETUP["Setup Java 17"]
+        ANDROID_SETUP["Setup Android SDK"]
+        CAP_BUILD["npm run build:mobile"]
+        CAP_SYNC["npx cap sync android"]
+        CAP_COPY["npx cap copy"]
+        GRADLE_BUILD["./gradlew assembleDebug"]
+        UPLOAD["Upload APK artifact"]
+    end
+
+    DEV --> BB &amp; BF
+    CHECKOUT --> NODE_SETUP --> JAVA_SETUP --> ANDROID_SETUP
+    ANDROID_SETUP --> CAP_BUILD --> CAP_SYNC --> CAP_COPY --> GRADLE_BUILD --> UPLOAD
+</div>
+
+      <div class="grid-2" style="margin-top:1rem;">
+        <div class="card">
+          <h4>Running Locally</h4>
+          <pre style="font-size:0.75rem;">
+# Development (both backend + frontend)
+npm run dev
+
+# Or individually
+npm run dev:backend   # Express on :3001
+npm run dev:frontend  # Vite on :5173
+
+# Mobile frontend
+cd mobile-frontend
+npm run dev           # Vite on :5174
+
+# Type checking
+npm run typecheck
+
+# Building
+npm run build</pre>
+        </div>
+        <div class="card">
+          <h4>Android Build Pipeline</h4>
+          <p style="font-size:0.8125rem;color:var(--muted-foreground);margin-bottom:0.75rem;">File: <code class="file-path">.github/workflows/android-build.yml</code></p>
+          <p style="font-size:0.8125rem;">The CI workflow triggers on push to develop/master. Steps:</p>
+          <ol style="font-size:0.75rem;margin-left:1rem;">
+            <li>Checkout + Node 20 + Java 17 + Android SDK</li>
+            <li><code>npm run build</code> (mobile frontend)</li>
+            <li><code>npx cap sync android</code></li>
+            <li><code>npx cap copy</code></li>
+            <li><code>./gradlew assembleDebug</code></li>
+            <li>Upload APK as build artifact</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. Type Definitions -->
+    <div class="section" id="types">
+      <h2>10. Type Definitions</h2>
+      <p style="margin-bottom:1rem;">The project uses a shared type system defined in <code class="file-path">backend/src/types/</code>. Key types include:</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="card">
+          <h4>BoltAction Types</h4>
+          <pre style="font-size:0.75rem;">
+type ActionType = 'file' | 'shell' | 'supabase';
+
+interface FileAction {
+  type: 'file';
+  filePath: string;
+  content: string;
+}
+
+interface ShellAction {
+  type: 'shell';
+  content: string;
+}
+
+interface SupabaseAction {
+  type: 'supabase';
+  operation: 'migration' | 'query';
+  filePath?: string;
+  projectId?: string;
+}</pre>
+        </div>
+        <div class="card">
+          <h4>Chat Types</h4>
+          <pre style="font-size:0.75rem;">
+interface IChat extends Document {
+  chatId: string;
+  title: string;
+  messages: IMessage[];
+  systemPrompt?: string;
+  metadata?: Record&lt;string, any&gt;;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface IMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: number;
+}</pre>
+        </div>
+        <div class="card">
+          <h4>Design System Types</h4>
+          <pre style="font-size:0.75rem;">
+interface DesignScheme {
+  palette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    success: string;
+    warning: string;
+    error: string;
+  };
+  features: string[];
+  font: string[];
+}</pre>
+        </div>
+        <div class="card">
+          <h4>Context Types</h4>
+          <pre style="font-size:0.75rem;">
+type ContextAnnotation =
+  | { type: 'codeContext'; files: string[] }
+  | { type: 'chatSummary'; summary: string; chatId: string };
+
+type ProgressAnnotation = {
+  type: 'progress';
+  label: string;
+  status: 'in-progress' | 'complete';
+  order: number;
+  message: string;
+};</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11. Environment Variables -->
+    <div class="section" id="env-vars">
+      <h2>11. Environment Variables</h2>
+      <p style="margin-bottom:1rem;">The backend server reads configuration from environment variables. Below is the complete reference.</p>
+
+      <div class="card" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Required</th>
+              <th>Description</th>
+              <th>Default</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>PORT</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Server port</td>
+              <td><code>3001</code></td>
+            </tr>
+            <tr>
+              <td><code>CORS_ORIGIN</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Allowed CORS origin</td>
+              <td><code>http://localhost:5173</code></td>
+            </tr>
+            <tr>
+              <td><code>MONGODB_URI</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>MongoDB connection string for chat persistence</td>
+              <td><em>disabled if unset</em></td>
+            </tr>
+            <tr>
+              <td><code>DAYTONA_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Daytona API key for sandbox creation</td>
+              <td><code>''</code></td>
+            </tr>
+            <tr>
+              <td><code>DAYTONA_API_URL</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Daytona API URL</td>
+              <td><code>https://app.daytona.io/api</code></td>
+            </tr>
+            <tr>
+              <td><code>DAYTONA_TARGET</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Daytona target region</td>
+              <td><code>us</code></td>
+            </tr>
+            <tr>
+              <td><code>DEFAULT_MODEL</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Default AI model</td>
+              <td><code>claude-3-5-sonnet-latest</code></td>
+            </tr>
+            <tr>
+              <td><code>GITHUB_TOKEN</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>GitHub token for bug report creation</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>NODE_ENV</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Environment mode</td>
+              <td><em>not set</em></td>
+            </tr>
+            <tr>
+              <td><code>FEATURE_*</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Feature flags (e.g., <code>FEATURE_DARK_MODE</code>)</td>
+              <td><code>true</code>/<code>false</code></td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background:var(--secondary);">
+                <strong style="color:var(--foreground);">AI Provider API Keys</strong>
+              </td>
+            </tr>
+            <tr>
+              <td><code>ANTHROPIC_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Anthropic Claude API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>OPENAI_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>OpenAI API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>GOOGLE_GENERATIVE_AI_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Google Gemini API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>GROQ_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Groq API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>MISTRAL_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Mistral API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>OPENROUTER_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>OpenRouter API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>AWS_*</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>AWS Bedrock credentials</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>COHERE_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Cohere API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>DEEPSEEK_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>DeepSeek API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>FIREWORKS_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Fireworks API key</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>CEREBRAS_API_KEY</code></td>
+              <td><span class="badge badge-warning">Optional</span></td>
+              <td>Cerebras API key</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>bolt.diy — AI-Powered Full-Stack Web Development Platform</p>
+      <p style="margin-top:0.25rem;">Documentation generated from codebase audit • June 2026</p>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        fontFamily: 'Inter, sans-serif',
+        primaryColor: '#8a5fff',
+        primaryTextColor: '#e8e8f0',
+        primaryBorderColor: '#8a5fff',
+        lineColor: '#2a2a4a',
+        secondaryColor: '#1c1c3a',
+        tertiaryColor: '#151528',
+        clusterBkg: '#151528',
+        clusterBorder: '#2a2a4a',
+        nodeBorder: '#2a2a4a',
+        nodeTextColor: '#e8e8f0',
+        edgeLabelBackground: '#1c1c3a',
+        edgeLabelTextColor: '#8888aa',
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis',
+      },
+      sequence: {
+        showSequenceNumbers: false,
+        actorFontSize: 14,
+        messageFontSize: 12,
+      },
+      state: {
+        fontSize: 12,
+      },
+    });
+  </script>
+</body>
+</html>
