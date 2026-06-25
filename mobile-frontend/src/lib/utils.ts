@@ -1,4 +1,10 @@
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { Capacitor } from '@capacitor/core';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function isNative(): boolean {
   return Capacitor.isNativePlatform();
@@ -18,26 +24,4 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function getLanguageFromExt(ext: string): string {
-  const map: Record<string, string> = {
-    ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript',
-    py: 'python', rb: 'ruby', go: 'go', rs: 'rust', java: 'java',
-    html: 'html', css: 'css', scss: 'scss', json: 'json', md: 'markdown',
-    yaml: 'yaml', yml: 'yaml', sh: 'bash', bash: 'bash', zsh: 'bash',
-    sql: 'sql', xml: 'xml', php: 'php', c: 'c', cpp: 'cpp', h: 'c',
-  };
-  return map[ext.toLowerCase()] || 'text';
-}
 
-export function getFileIcon(name: string): string {
-  const ext = name.split('.').pop() || '';
-  const map: Record<string, string> = {
-    ts: '📄', tsx: '📄', js: '📜', jsx: '📜',
-    py: '🐍', rb: '💎', go: '🐹', rs: '🦀', java: '☕',
-    html: '🌐', css: '🎨', scss: '🎨', json: '📋', md: '📝',
-    yaml: '⚙️', yml: '⚙️', sh: '⚙️', sql: '🗄️',
-    png: '🖼️', jpg: '🖼️', jpeg: '🖼️', svg: '🖼️', ico: '🖼️',
-    pdf: '📕', zip: '📦',
-  };
-  return map[ext.toLowerCase()] || '📄';
-}

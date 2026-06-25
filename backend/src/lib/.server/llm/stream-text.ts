@@ -6,15 +6,20 @@ import { createScopedLogger } from '~/utils/logger';
 
 const logger = createScopedLogger('StreamText');
 
+interface Message {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
 export interface StreamTextOptions {
-  messages: any[];
+  messages: Message[];
   provider: string;
   model: string;
   apiKeys?: Record<string, string>;
   providerSettings?: Record<string, IProviderSetting>;
   serverEnv?: Record<string, string>;
   systemPrompt?: string;
-  onFinish?: (result: any) => Promise<void>;
+  onFinish?: (result: unknown) => Promise<void>;
   onError?: (error: Error) => void;
   abortSignal?: AbortSignal;
 }

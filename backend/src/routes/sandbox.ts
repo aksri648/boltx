@@ -257,8 +257,8 @@ export function setupSandboxWebSocket(wss: WebSocketServer) {
 
         try {
           await sandboxManager.sendPtyInput(terminalId, raw.toString())
-        } catch (err) {
-          console.warn('[PTY] sendInput error:', err)
+        } catch (err: unknown) {
+          process.stderr.write(`[PTY] sendInput error: ${err}\n`)
         }
       })
 
@@ -278,10 +278,11 @@ export function setupSandboxWebSocket(wss: WebSocketServer) {
         }
       }, 30000)
 
-    } catch (err: any) {
-      console.error('[PTY] Connection error:', err.message)
-      ws.send(JSON.stringify({ type: 'error', message: err.message }))
-      ws.close(4002, err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      process.stderr.write(`[PTY] Connection error: ${message}\n`)
+      ws.send(JSON.stringify({ type: 'error', message }))
+      ws.close(4002, message)
     }
   })
 }

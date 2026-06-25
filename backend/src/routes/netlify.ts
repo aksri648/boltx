@@ -22,10 +22,14 @@ router.post('/deploy', async (req: Request, res: Response) => {
     if (!siteRes.ok) throw new Error(`Netlify API error: ${siteRes.status}`);
     const site: any = await siteRes.json();
 
+    const isZipBuffer = files instanceof Buffer || (Array.isArray(files) && files.length > 0 && typeof files[0] === 'number');
     const deployRes = await fetch(`https://api.netlify.com/api/v1/sites/${site.id}/deploys`, {
       method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/zip' },
-      body: Buffer.from(files),
+      headers: {
+        ...headers,
+        'Content-Type': isZipBuffer ? 'application/zip' : 'application/json',
+      },
+      body: isZipBuffer ? files : JSON.stringify(files),
     });
 
     if (!deployRes.ok) throw new Error(`Netlify deploy error: ${deployRes.status}`);

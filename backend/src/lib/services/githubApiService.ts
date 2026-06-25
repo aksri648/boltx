@@ -59,13 +59,7 @@ export class GitHubApiService {
   }
 }
 
-let gitHubInstance: GitHubApiService | null = null;
-
 export function getGitHubApiService(token?: string): GitHubApiService {
-  if (!gitHubInstance) {
-    gitHubInstance = new GitHubApiService(token);
-  } else if (token) {
-    gitHubInstance = new GitHubApiService(token);
-  }
-  return gitHubInstance;
+  // Always create a new instance per-request to avoid token race conditions
+  return new GitHubApiService(token);
 }

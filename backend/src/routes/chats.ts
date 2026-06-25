@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { Chat, type IChat } from '~/lib/models/Chat';
 import { isMongoDBConnected } from '~/lib/db/mongodb';
 import { createScopedLogger } from '~/utils/logger';
@@ -7,7 +7,7 @@ const logger = createScopedLogger('ChatRoutes');
 const router = Router();
 
 // Middleware to check MongoDB availability
-function requireDB(req: Request, res: Response, next: Function) {
+function requireDB(req: Request, res: Response, next: NextFunction) {
   if (!isMongoDBConnected()) {
     res.status(503).json({ error: 'MongoDB not configured. Set MONGODB_URI environment variable.' });
     return;

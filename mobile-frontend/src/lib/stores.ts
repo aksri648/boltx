@@ -6,6 +6,10 @@ import {
   deleteChatStorage,
 } from './api';
 import { getSystemPrompt } from './system-prompt';
+import type { ChatMessage, ChatHistoryEntry } from './types';
+
+// Re-export ChatMessage for backwards compatibility
+export type { ChatMessage } from './types';
 
 // --- Settings Store ---
 interface SettingsState {
@@ -13,45 +17,76 @@ interface SettingsState {
   provider: string;
   model: string;
   apiKeys: Record<string, string>;
+  openAILikeBaseUrl: string;
   setBackendUrl: (url: string) => void;
   setProvider: (provider: string) => void;
   setModel: (model: string) => void;
   setApiKey: (provider: string, key: string) => void;
+  setOpenAILikeBaseUrl: (url: string) => void;
+}
+
+function safeLocalStorageSet(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Quota exceeded — silently fail
+  }
+}
+
+function safeLocalStorageGet(key: string, fallback: string): string {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeJsonParse(str: string | null, fallback: Record<string, string>): Record<string, string> {
+  if (!str) return fallback;
+  try {
+    const parsed = JSON.parse(str);
+    return typeof parsed === 'object' && parsed !== null ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  backendUrl: localStorage.getItem('bolt-mobile-backend-url') || 'http://localhost:3001',
-  provider: 'Anthropic',
-  model: 'claude-3-5-sonnet-latest',
-  apiKeys: JSON.parse(localStorage.getItem('bolt-mobile-api-keys') || '{}'),
+  backendUrl: safeLocalStorageGet('bolt-mobile-backend-url', 'http://localhost:3001'),
+  provider: safeLocalStorageGet('bolt-mobile-provider', 'Anthropic'),
+  model: safeLocalStorageGet('bolt-mobile-model', 'claude-3-5-sonnet-latest'),
+  apiKeys: safeJsonParse(localStorage.getItem('bolt-mobile-api-keys'), {}),
+  openAILikeBaseUrl: safeLocalStorageGet('bolt-mobile-openai-like-base-url', 'http://localhost:8080/v1'),
   setBackendUrl: (url) => {
-    localStorage.setItem('bolt-mobile-backend-url', url);
+    safeLocalStorageSet('bolt-mobile-backend-url', url);
     set({ backendUrl: url });
   },
-  setProvider: (provider) => set({ provider }),
-  setModel: (model) => set({ model }),
+  setProvider: (provider) => {
+    safeLocalStorageSet('bolt-mobile-provider', provider);
+    set({ provider });
+  },
+  setModel: (model) => {
+    safeLocalStorageSet('bolt-mobile-model', model);
+    set({ model });
+  },
   setApiKey: (provider, key) =>
     set((state) => {
       const apiKeys = { ...state.apiKeys, [provider]: key };
-      localStorage.setItem('bolt-mobile-api-keys', JSON.stringify(apiKeys));
+      safeLocalStorageSet('bolt-mobile-api-keys', JSON.stringify(apiKeys));
       return { apiKeys };
     }),
+  setOpenAILikeBaseUrl: (url) => {
+    safeLocalStorageSet('bolt-mobile-openai-like-base-url', url);
+    set({ openAILikeBaseUrl: url });
+  },
 }));
 
 // --- Chat Store (MongoDB-backed) ---
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
-  isStreaming?: boolean;
-}
-
 interface ChatState {
   messages: ChatMessage[];
   isLoading: boolean;
   currentChatId: string | null;
-  chatHistory: Array<{ id: string; title: string; timestamp: number; messages: ChatMessage[]; lastMessage?: { role: string; content: string } | null }>;
+  chatHistory: ChatHistoryEntry[];
   addMessage: (msg: ChatMessage) => void;
   updateMessage: (id: string, content: string) => void;
   setLoading: (loading: boolean) => void;
@@ -87,15 +122,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   loadHistory: async () => {
     try {
       const chats = await listChats();
-      const history = Array.isArray(chats)
-        ? chats.map((c: any) => ({
-            id: c.chatId,
-            title: c.title || 'Untitled',
-            timestamp: new Date(c.updatedAt).getTime(),
-            messages: [], // full messages loaded on demand via loadChat
-            lastMessage: c.lastMessage || null,
-          }))
-        : [];
+      const history: ChatHistoryEntry[] = chats.map((c) => ({
+        id: c.chatId,
+        title: c.title || 'Untitled',
+        timestamp: new Date(c.updatedAt).getTime(),
+        lastMessage: c.lastMessage || null,
+      }));
       set({ chatHistory: history });
     } catch (err) {
       console.error('Failed to load chat history from backend:', err);
@@ -110,35 +142,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const chatId = currentChatId || `chat-${Date.now()}`;
     const title = messages[0]?.content.slice(0, 50) || 'New Chat';
 
-    const payload = {
-      chatId,
-      title,
-      messages: messages.map((m) => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-        timestamp: m.timestamp,
-      })),
-      // Only send systemPrompt when creating a new chat
-      ...(!currentChatId && { systemPrompt: getSystemPrompt() }),
-    };
-
     try {
-      await saveChat(payload);
+      await saveChat({
+        chatId,
+        title,
+        messages: messages.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp,
+        })),
+        systemPrompt: !currentChatId ? getSystemPrompt() : undefined,
+      });
       set({ currentChatId: chatId });
 
-      // Refresh chat history
-      const chats = await listChats();
-      const history = Array.isArray(chats)
-        ? chats.map((c: any) => ({
-            id: c.chatId,
-            title: c.title || 'Untitled',
-            timestamp: new Date(c.updatedAt).getTime(),
-            messages: [],
-            lastMessage: c.lastMessage || null,
-          }))
-        : [];
-      set({ chatHistory: history });
+      // Optimistically update history instead of re-fetching
+      set((state) => {
+        const existing = state.chatHistory.find((c) => c.id === chatId);
+        if (existing) {
+          return {
+            chatHistory: state.chatHistory.map((c) =>
+              c.id === chatId ? { ...c, title, timestamp: Date.now() } : c
+            ),
+          };
+        }
+        return {
+          chatHistory: [{ id: chatId, title, timestamp: Date.now(), lastMessage: null }, ...state.chatHistory],
+        };
+      });
     } catch (err) {
       console.error('Failed to save chat to backend:', err);
     }
@@ -147,11 +178,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   loadChat: async (id: string) => {
     try {
       const chat = await getChat(id);
-      if (chat && chat.messages) {
+      if (chat?.messages) {
         set({
-          messages: chat.messages.map((m: any) => ({
+          messages: chat.messages.map((m) => ({
             id: m.id,
-            role: m.role,
+            role: m.role as 'user' | 'assistant',
             content: m.content,
             timestamp: m.timestamp || Date.now(),
           })),
@@ -178,12 +209,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 }));
 
 // --- Files Store ---
-interface FileNode {
-  name: string;
-  path: string;
-  type: 'file' | 'directory';
-  children?: FileNode[];
-}
+import type { FileNode } from './types';
 
 interface FilesState {
   files: FileNode[];

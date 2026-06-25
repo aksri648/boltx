@@ -4,6 +4,7 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import { createScopedLogger, renderLogger } from './utils/logger';
 import { getProviderList } from './utils/constants';
+import { rateLimit } from './lib/middleware/rate-limit';
 
 import chatRoutes from './routes/chat';
 import llmCallRoutes from './routes/llmcall';
@@ -47,6 +48,9 @@ export async function createServer() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
+  // Rate limiting — 120 requests per minute per IP
+  app.use('/api', rateLimit(60_000, 120));
+
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
@@ -80,9 +84,17 @@ export async function createServer() {
   app.use('/api/vercel-proxy', vercelProxyRoutes);
   app.use('/api/netlify-proxy', netlifyProxyRoutes);
 
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // 404 handler
+  app.use((_req: express.Request, res: express.Response) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
+  // Global error handler
+  app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   });
 
   return { app, PORT };
@@ -104,14 +116,14 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 process.on('SIGTERM', async () => {
-  console.log('Cleaning up sandboxes...');
+  logger.info('Cleaning up sandboxes...');
   await SandboxManager.getInstance().cleanup();
   await disconnectMongoDB();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-  console.log('Cleaning up sandboxes...');
+  logger.info('Cleaning up sandboxes...');
   await SandboxManager.getInstance().cleanup();
   await disconnectMongoDB();
   process.exit(0);

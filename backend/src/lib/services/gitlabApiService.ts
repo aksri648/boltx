@@ -36,13 +36,7 @@ export class GitLabApiService {
   }
 }
 
-let gitLabInstance: GitLabApiService | null = null;
-
 export function getGitLabApiService(token?: string): GitLabApiService {
-  if (!gitLabInstance) {
-    gitLabInstance = new GitLabApiService(token);
-  } else if (token) {
-    gitLabInstance = new GitLabApiService(token);
-  }
-  return gitLabInstance;
+  // Always create a new instance per-request to avoid token race conditions
+  return new GitLabApiService(token);
 }

@@ -1,6 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useFilesStore } from '../lib/stores';
 import { executeSandboxCommand, createSandbox } from '../lib/api';
+import { cn } from '../lib/utils';
+import {
+  Terminal,
+  Send,
+  Loader2,
+  Wifi,
+  WifiOff,
+  Trash2,
+} from 'lucide-react';
 
 interface TerminalLine {
   id: string;
@@ -20,6 +29,16 @@ export function TerminalScreen() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const outputRef = useRef<HTMLDivElement>(null);
 
+  const addLine = useCallback((type: TerminalLine['type'], content: string) => {
+    setLines((prev) => [...prev, {
+      id: Date.now().toString() + Math.random(),
+      type,
+      content,
+      timestamp: Date.now(),
+    }]);
+  }, []);
+
+  // Create sandbox on mount if needed (reuse existing)
   useEffect(() => {
     if (!sandboxId) {
       createSandbox()
@@ -31,20 +50,11 @@ export function TerminalScreen() {
         })
         .catch(() => addLine('error', 'Failed to connect to sandbox'));
     }
-  }, []);
+  }, [sandboxId, setSandboxId, addLine]);
 
   useEffect(() => {
     outputRef.current?.scrollTo(0, outputRef.current.scrollHeight);
   }, [lines]);
-
-  const addLine = (type: TerminalLine['type'], content: string) => {
-    setLines((prev) => [...prev, {
-      id: Date.now().toString() + Math.random(),
-      type,
-      content,
-      timestamp: Date.now(),
-    }]);
-  };
 
   const handleExecute = async () => {
     if (!input.trim() || isExecuting || !sandboxId) return;
@@ -58,11 +68,15 @@ export function TerminalScreen() {
 
     try {
       const data = await executeSandboxCommand(sandboxId, cmd);
-      if (data?.stdout) addLine('output', data.stdout);
-      if (data?.stderr) addLine('error', data.stderr);
-      if (!data?.stdout && !data?.stderr) addLine('output', '(no output)');
-    } catch (err: any) {
-      addLine('error', `Error: ${err.message || 'Command failed'}`);
+      const output = data?.result || '';
+      if (output) {
+        addLine('output', output);
+      } else {
+        addLine('output', '(no output)');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Command failed';
+      addLine('error', `Error: ${message}`);
     } finally {
       setIsExecuting(false);
     }
@@ -92,50 +106,90 @@ export function TerminalScreen() {
     }
   };
 
+  const clearTerminal = () => {
+    setLines([{ id: Date.now().toString(), type: 'output', content: 'Terminal cleared.', timestamp: Date.now() }]);
+  };
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="safe-top flex items-center justify-between px-4 py-3 bg-[var(--bolt-bg-2)] border-b border-[var(--bolt-border)] shrink-0">
-        <h2 className="text-lg font-semibold">Terminal</h2>
-        <span className={`text-xs px-2 py-1 rounded ${sandboxId ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-          {sandboxId ? 'Connected' : 'Disconnected'}
-        </span>
+      <div className="safe-top flex items-center justify-between px-4 py-3 bg-surface/80 border-b border-border backdrop-blur-xl shrink-0">
+        <div className="flex items-center gap-2">
+          <Terminal className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Terminal</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={clearTerminal}
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-secondary text-muted-foreground active:bg-accent transition-colors min-h-0 min-w-0"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+          <div className={cn(
+            'flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-medium',
+            sandboxId
+              ? 'bg-success/15 text-success border border-success/20'
+              : 'bg-error/15 text-error border border-error/20'
+          )}>
+            {sandboxId ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            {sandboxId ? 'Connected' : 'Disconnected'}
+          </div>
+        </div>
       </div>
 
       {/* Output */}
-      <div ref={outputRef} className="flex-1 overflow-y-auto p-3 font-mono text-xs space-y-1 bg-black/30">
+      <div ref={outputRef} className="flex-1 overflow-y-auto p-3 font-mono text-xs space-y-1.5 bg-background">
         {lines.map((line) => (
-          <div key={line.id} className={`whitespace-pre-wrap break-all ${
-            line.type === 'command' ? 'text-[var(--bolt-accent)] font-bold' :
-            line.type === 'error' ? 'text-red-400' :
-            'text-[var(--bolt-text)]'
-          }`}>
+          <div
+            key={line.id}
+            className={cn(
+              'whitespace-pre-wrap break-all leading-relaxed',
+              line.type === 'command' ? 'text-primary font-bold' :
+              line.type === 'error' ? 'text-error' :
+              'text-foreground/80'
+            )}
+          >
+            {line.type === 'command' && (
+              <span className="text-primary/60 mr-1">❯</span>
+            )}
             {line.content}
           </div>
         ))}
         {isExecuting && (
-          <div className="text-[var(--bolt-accent)] animate-pulse">Executing...</div>
+          <div className="flex items-center gap-2 text-primary">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            <span className="animate-pulse">Executing...</span>
+          </div>
         )}
       </div>
 
       {/* Input */}
-      <div className="safe-bottom bg-[var(--bolt-bg-2)] border-t border-[var(--bolt-border)] px-3 py-2 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-[var(--bolt-accent)] font-mono text-sm">$</span>
+      <div className="safe-bottom bg-surface/80 border-t border-border px-3 py-2.5 shrink-0 backdrop-blur-xl">
+        <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-3 py-1 focus-within:ring-1 focus-within:ring-ring transition-all">
+          <span className="text-primary font-mono text-sm font-bold">❯</span>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={sandboxId ? 'Enter command...' : 'Connecting to sandbox...'}
             disabled={!sandboxId || isExecuting}
-            className="flex-1 bg-transparent text-[var(--bolt-text)] text-sm font-mono outline-none placeholder:text-[var(--bolt-text-muted)]"
+            className="flex-1 bg-transparent text-foreground text-sm font-mono outline-none placeholder:text-muted-foreground min-h-0"
           />
           <button
             onClick={handleExecute}
             disabled={!input.trim() || isExecuting || !sandboxId}
-            className="bg-[var(--bolt-accent)] text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 disabled:opacity-40 text-sm"
+            className={cn(
+              'flex items-center justify-center w-8 h-8 rounded-lg transition-all min-h-0 min-w-0',
+              input.trim() && !isExecuting && sandboxId
+                ? 'bg-primary text-primary-foreground active:scale-95'
+                : 'text-muted-foreground'
+            )}
           >
-            ↑
+            {isExecuting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>

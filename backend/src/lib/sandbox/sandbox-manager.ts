@@ -303,8 +303,10 @@ class SandboxManager {
 
     try {
       await session.sandbox.delete()
-    } catch (err) {
-      console.warn(`Failed to delete sandbox ${id}:`, err)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      // Use console.warn here since logger may not be imported to avoid circular deps
+      process.stderr.write(`[SandboxManager] Failed to delete sandbox ${id}: ${message}\n`)
     }
     this.sessions.delete(id)
   }

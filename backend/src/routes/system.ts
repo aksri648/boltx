@@ -7,9 +7,12 @@ router.get('/', (_req: Request, res: Response) => {
     node: process.version,
     platform: process.platform,
     arch: process.arch,
-    cwd: process.cwd(),
-    memory: process.memoryUsage(),
     uptime: process.uptime(),
+    memory: {
+      rss: process.memoryUsage().rss,
+      heapUsed: process.memoryUsage().heapUsed,
+      heapTotal: process.memoryUsage().heapTotal,
+    },
   });
 });
 
