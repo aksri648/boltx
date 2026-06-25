@@ -1,0 +1,85 @@
+export type DebugLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'none';
+import chalk from 'chalk';
+
+type LoggerFunction = (...messages: any[]) => void;
+
+interface Logger {
+  trace: LoggerFunction;
+  debug: LoggerFunction;
+  info: LoggerFunction;
+  warn: LoggerFunction;
+  error: LoggerFunction;
+  setLevel: (level: DebugLevel) => void;
+}
+
+let currentLevel: DebugLevel = 'info';
+
+export const logger: Logger = {
+  trace: (...messages: any[]) => logWithDebugCapture('trace', undefined, messages),
+  debug: (...messages: any[]) => logWithDebugCapture('debug', undefined, messages),
+  info: (...messages: any[]) => logWithDebugCapture('info', undefined, messages),
+  warn: (...messages: any[]) => logWithDebugCapture('warn', undefined, messages),
+  error: (...messages: any[]) => logWithDebugCapture('error', undefined, messages),
+  setLevel,
+};
+
+export function createScopedLogger(scope: string): Logger {
+  return {
+    trace: (...messages: any[]) => logWithDebugCapture('trace', scope, messages),
+    debug: (...messages: any[]) => logWithDebugCapture('debug', scope, messages),
+    info: (...messages: any[]) => logWithDebugCapture('info', scope, messages),
+    warn: (...messages: any[]) => logWithDebugCapture('warn', scope, messages),
+    error: (...messages: any[]) => logWithDebugCapture('error', scope, messages),
+    setLevel,
+  };
+}
+
+function setLevel(level: DebugLevel) {
+  if ((level === 'trace' || level === 'debug') && process.env.NODE_ENV === 'production') {
+    return;
+  }
+  currentLevel = level;
+}
+
+function log(level: DebugLevel, scope: string | undefined, messages: any[]) {
+  const levelOrder: DebugLevel[] = ['trace', 'debug', 'info', 'warn', 'error', 'none'];
+  if (levelOrder.indexOf(level) < levelOrder.indexOf(currentLevel)) return;
+  if (currentLevel === 'none') return;
+
+  const allMessages = messages.reduce((acc, current) => {
+    if (acc.endsWith('\n')) return acc + current;
+    if (!acc) return current;
+    return `${acc} ${current}`;
+  }, '');
+
+  const labelBackgroundColor = getColorForLevel(level);
+  const labelTextColor = level === 'warn' ? '#000000' : '#FFFFFF';
+  let labelText = formatText(` ${level.toUpperCase()} `, labelTextColor, labelBackgroundColor);
+
+  if (scope) {
+    labelText = `${labelText} ${formatText(` ${scope} `, '#FFFFFF', '#77828D')}`;
+  }
+
+  console.log(`${labelText}`, allMessages);
+}
+
+function formatText(text: string, color: string, bg: string) {
+  return chalk.bgHex(bg)(chalk.hex(color)(text));
+}
+
+function getColorForLevel(level: DebugLevel): string {
+  switch (level) {
+    case 'trace':
+    case 'debug': return '#77828D';
+    case 'info': return '#1389FD';
+    case 'warn': return '#FFDB6C';
+    case 'error': return '#EE4744';
+    default: return '#000000';
+  }
+}
+
+export const renderLogger = createScopedLogger('Render');
+
+function logWithDebugCapture(level: DebugLevel, scope: string | undefined, messages: any[]) {
+  log(level, scope, messages);
+}
