@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["ESNext", "DOM"],
-    "types": ["node", "express", "ws"],
+    "types": ["node"],
     "isolatedModules": true,
     "esModuleInterop": true,
     "module": "ESNext",
