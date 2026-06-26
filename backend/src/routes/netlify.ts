@@ -29,7 +29,7 @@ router.post('/deploy', async (req: Request, res: Response) => {
         ...headers,
         'Content-Type': isZipBuffer ? 'application/zip' : 'application/json',
       },
-      body: isZipBuffer ? files : JSON.stringify(files),
+      body: (isZipBuffer ? files : JSON.stringify(files)) as BodyInit,
     });
 
     if (!deployRes.ok) throw new Error(`Netlify deploy error: ${deployRes.status}`);
