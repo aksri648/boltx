@@ -105,10 +105,11 @@ export async function enhancePrompt(
   prompt: string,
   provider?: string,
   model?: string,
+  apiKeys?: Record<string, string>,
 ): Promise<{ enhancedPrompt?: string }> {
   const res = await apiFetch('/enhancer', {
     method: 'POST',
-    body: JSON.stringify({ prompt, provider, model }),
+    body: JSON.stringify({ prompt, provider, model, apiKeys }),
   });
 
   if (!res.ok) {

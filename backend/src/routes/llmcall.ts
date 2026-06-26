@@ -51,22 +51,33 @@ router.post('/', async (req: Request, res: Response) => {
       serverEnv,
     });
 
+    // Return as SSE stream for compatibility with streaming clients
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    });
+
     const reader = stream.readable.getReader();
     const decoder = new TextDecoder();
-    let fullText = '';
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
-      fullText += decoder.decode(value, { stream: true });
+      if (done) {
+        res.write('data: [DONE]\n\n');
+        res.end();
+        break;
+      }
+      const text = decoder.decode(value, { stream: true });
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
     }
 
     await pipePromise;
-
-    res.json({ content: fullText });
   } catch (error: any) {
     logger.error('LLM call error:', error);
-    res.status(500).json({ error: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message });
+    }
   }
 });
 

@@ -145,9 +145,25 @@ export function ChatScreen() {
         }
       }
 
-      // If no streaming content was received, try to parse as a single JSON response
-      // (handles non-streaming backend responses)
-      if (!fullContent && res.bodyUsed) {
+      // If no streaming content was received and body hasn't been consumed, try plain text
+      if (!fullContent && !res.bodyUsed) {
+        try {
+          const textBody = await res.text();
+          if (textBody) {
+            try {
+              const parsed = JSON.parse(textBody) as { content?: string; error?: string };
+              updateMessage(assistantMsg.id, parsed.content || parsed.error || 'No response received.');
+            } catch {
+              // Not JSON, show raw text
+              updateMessage(assistantMsg.id, textBody || 'No response received.');
+            }
+          } else {
+            updateMessage(assistantMsg.id, 'No response received.');
+          }
+        } catch {
+          updateMessage(assistantMsg.id, 'No response received.');
+        }
+      } else if (!fullContent) {
         updateMessage(assistantMsg.id, 'No response received.');
       }
 
@@ -164,7 +180,7 @@ export function ChatScreen() {
     if (!input.trim()) return;
     setEnhanceError(null);
     try {
-      const data = await enhancePrompt(input, provider, model);
+      const data = await enhancePrompt(input, provider, model, apiKeys);
       if (data?.enhancedPrompt) {
         setInput(data.enhancedPrompt);
       } else {

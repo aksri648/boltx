@@ -11,7 +11,8 @@ export interface IChat extends Document {
   chatId: string;
   title: string;
   messages: IMessage[];
-  systemPrompt?: string;    metadata?: Record<string, unknown>;
+  systemPrompt?: string;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -17,6 +17,13 @@ const buckets = new Map<string, RateLimitEntry>();
  */
 let cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
+export function clearRateLimitInterval() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+}
+
 export function rateLimit(windowMs: number = 60_000, maxRequests: number = 120) {
   // Start periodic cleanup only once
   if (!cleanupInterval) {

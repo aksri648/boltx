@@ -4,7 +4,7 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import { createScopedLogger, renderLogger } from './utils/logger';
 import { getProviderList } from './utils/constants';
-import { rateLimit } from './lib/middleware/rate-limit';
+import { rateLimit, clearRateLimitInterval } from './lib/middleware/rate-limit';
 
 import chatRoutes from './routes/chat';
 import llmCallRoutes from './routes/llmcall';
@@ -118,6 +118,7 @@ if (process.env.NODE_ENV !== 'test') {
 process.on('SIGTERM', async () => {
   logger.info('Cleaning up sandboxes...');
   await SandboxManager.getInstance().cleanup();
+  clearRateLimitInterval();
   await disconnectMongoDB();
   process.exit(0);
 });
@@ -125,6 +126,7 @@ process.on('SIGTERM', async () => {
 process.on('SIGINT', async () => {
   logger.info('Cleaning up sandboxes...');
   await SandboxManager.getInstance().cleanup();
+  clearRateLimitInterval();
   await disconnectMongoDB();
   process.exit(0);
 });

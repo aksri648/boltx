@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { deployVercel, deployNetlify } from '../lib/api';
+import { deployVercel, deployNetlify, getApiBase } from '../lib/api';
 import { useFilesStore } from '../lib/stores';
 import { cn } from '../lib/utils';
 import {
@@ -42,7 +42,7 @@ export function DeployScreen() {
           if (file.type === 'file') {
             try {
               const res = await fetch(
-                `${localStorage.getItem('bolt-mobile-backend-url') || 'http://localhost:3001'}/api/sandbox/${sandboxId}/files/read`,
+                `${getApiBase()}/sandbox/${sandboxId}/files/read`,
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },

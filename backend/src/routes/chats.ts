@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
-import { Chat, type IChat } from '~/lib/models/Chat';
+import { Chat } from '~/lib/models/Chat';
 import { isMongoDBConnected } from '~/lib/db/mongodb';
 import { createScopedLogger } from '~/utils/logger';
 
@@ -21,28 +21,39 @@ router.use(requireDB);
 // Includes a lastMessage preview for sidebar display without loading full message history
 router.get('/', async (_req: Request, res: Response) => {
   try {
-    const chats = await Chat.find()
-      .select('chatId title messages createdAt updatedAt')
-      .sort({ updatedAt: -1 })
-      .lean();
+    // Use aggregate to get only the last message per chat without fetching all messages
+    const chats = await Chat.aggregate([
+      { $sort: { updatedAt: -1 } },
+      {
+        $project: {
+          chatId: 1,
+          title: 1,
+          updatedAt: 1,
+          lastMessage: {
+            $let: {
+              vars: { last: { $last: '$messages' } },
+              in: {
+                $cond: {
+                  if: { $ne: ['$$last', undefined] },
+                  then: {
+                    role: '$$last.role',
+                    content: { $substrCP: ['$$last.content', 0, 120] },
+                  },
+                  else: null,
+                },
+              },
+            },
+          },
+        },
+      },
+    ]);
 
-    const result = chats.map((chat: any) => {
-      const msgs = chat.messages || [];
-      const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
-
-      return {
-        chatId: chat.chatId,
-        title: chat.title,
-        createdAt: chat.createdAt,
-        updatedAt: chat.updatedAt,
-        lastMessage: lastMsg
-          ? {
-              role: lastMsg.role,
-              content: lastMsg.content.slice(0, 120),
-            }
-          : null,
-      };
-    });
+    const result = chats.map((chat: any) => ({
+      chatId: chat.chatId,
+      title: chat.title,
+      updatedAt: chat.updatedAt,
+      lastMessage: chat.lastMessage,
+    }));
 
     res.json(result);
   } catch (error: any) {
@@ -110,6 +121,9 @@ router.delete('/:chatId', async (req: Request, res: Response) => {
   }
 });
 
+// Max messages per chat to prevent unbounded array growth
+const MAX_MESSAGES_PER_CHAT = 1000;
+
 // Append messages to an existing chat (context window persistence)
 router.post('/:chatId/messages', async (req: Request, res: Response) => {
   try {
@@ -121,13 +135,22 @@ router.post('/:chatId/messages', async (req: Request, res: Response) => {
       return;
     }
 
-    const chat = await Chat.findOneAndUpdate(
+    // First trim old messages if the chat exceeds the limit
+    const chat = await Chat.findOne({ chatId }).select('messages').lean();
+    if (chat && chat.messages.length + messages.length > MAX_MESSAGES_PER_CHAT) {
+      await Chat.updateOne(
+        { chatId },
+        { $push: { messages: { $each: [], $slice: -MAX_MESSAGES_PER_CHAT } } },
+      );
+    }
+
+    const updated = await Chat.findOneAndUpdate(
       { chatId },
       { $push: { messages: { $each: messages } } },
       { upsert: true, new: true, runValidators: true },
     ).lean();
 
-    res.json(chat);
+    res.json(updated);
   } catch (error: any) {
     logger.error('Failed to append messages:', error);
     res.status(500).json({ error: error.message });
