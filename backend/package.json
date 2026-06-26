@@ -38,15 +38,15 @@
     "mime": "^4.0.4",
     "mongoose": "^9.7.2",
     "ollama-ai-provider": "^0.15.2",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
+    "zod": "^3.24.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
     "@types/ws": "^8.18.1",
-    "tsx": "^4.19.0",
     "typescript": "^5.7.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
   },
   "engines": {
     "node": ">=18.18.0"
